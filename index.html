@@ -1,0 +1,1578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Forgotten Explorers</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#05060f;color:#fff;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow:hidden;touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+body{display:flex;align-items:center;justify-content:center}
+#wrap{position:relative}
+#stage{position:relative;overflow:hidden;background:#000;border-radius:.5em;box-shadow:0 0 2em rgba(80,120,255,.15)}
+canvas{display:block;width:100%;height:100%;touch-action:none}
+.btn{font:inherit;font-weight:800;border:0;border-radius:999px;padding:.55em 1.2em;background:#ffd34d;color:#1b1530;cursor:pointer;box-shadow:0 .22em 0 #b8891a;transition:transform .05s}
+.btn:active{transform:translateY(.15em);box-shadow:0 .07em 0 #b8891a}
+.btn.ghost{background:rgba(255,255,255,.12);color:#fff;box-shadow:none;border:1px solid rgba(255,255,255,.4)}
+.btn.blue{background:#6fd3ff;box-shadow:0 .22em 0 #2a8fbf}
+.btn.red{background:#ff8a7a;box-shadow:0 .22em 0 #b8463a}
+.btn.big{font-size:1.25em;padding:.6em 1.6em}
+#toggles{position:absolute;top:.5em;right:.5em;display:flex;gap:.4em;z-index:7}
+#toggles .btn{padding:.3em .75em;font-size:.8em}
+#title{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.7em;text-align:center;z-index:8;padding:1em}
+#title h1{font-size:2.5em;line-height:1.05;text-shadow:0 .1em .5em #000;letter-spacing:.01em}
+#title h1 span{color:#ffd34d}
+#title p{opacity:.85;text-shadow:0 .1em .3em #000}
+#title .row{display:flex;gap:.6em;flex-wrap:wrap;justify-content:center;align-items:center;margin-top:.4em}
+#dialog{position:absolute;left:2%;right:2%;top:2.6em;background:rgba(10,12,35,.9);border:2px solid rgba(255,255,255,.22);border-radius:.8em;padding:.65em 1em .7em;z-index:6;display:none;cursor:pointer}
+#dialog .who{font-weight:900;color:#ffd34d;margin-bottom:.2em;font-size:.9em;letter-spacing:.04em;text-transform:uppercase}
+#dialog .txt{line-height:1.42;min-height:2.84em}
+#dialog .acts{display:flex;gap:.6em;justify-content:flex-end;margin-top:.45em;flex-wrap:wrap}
+#controls{position:absolute;left:0;right:0;bottom:0;display:none;justify-content:space-between;align-items:flex-end;padding:0 3% 3%;z-index:5;pointer-events:none}
+#controls .pad{display:flex;gap:.7em;pointer-events:auto}
+#controls button{width:3.6em;height:3.6em;border-radius:50%;border:2px solid rgba(255,255,255,.55);background:rgba(255,255,255,.16);color:#fff;font-size:1.05em;font-weight:900;touch-action:none;font-family:inherit}
+#controls button.on{background:rgba(255,211,77,.5)}
+#albumBtn{position:absolute;top:.5em;left:.5em;z-index:7;display:none;padding:.35em .9em;font-size:.9em}
+#album{position:fixed;inset:0;z-index:50;display:none;overflow-y:auto;-webkit-overflow-scrolling:touch;background:radial-gradient(ellipse at center,#7b4a2a 0%,#5a3319 70%,#3d220f 100%);padding:16px 16px 40px;font-size:16px}
+#album .ahead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;max-width:1100px;margin:0 auto 6px}
+#album h2{font-size:1.6em;text-shadow:0 2px 6px rgba(0,0,0,.5)}
+#album .ahead p{opacity:.85;margin-top:4px;max-width:620px}
+#album .abtns{display:flex;gap:8px}
+#album h3{max-width:1100px;margin:22px auto 10px;font-size:1.15em;color:#ffd34d;text-shadow:0 2px 4px rgba(0,0,0,.4)}
+#album .agrid{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:22px 18px}
+.pol{position:relative;display:block;width:100%;background:#fbfaf5;padding:8px 8px 0;border:0;box-shadow:0 8px 18px rgba(0,0,0,.45);transform:rotate(var(--r,0deg));cursor:pointer;font:inherit;color:#2b2b3a;transition:transform .15s}
+button.pol:hover,button.pol:focus-visible{transform:rotate(0deg) scale(1.04);outline:none}
+.pol img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;background:#222}
+.pol span{display:block;padding:8px 2px 10px;font-family:"Comic Sans MS","Marker Felt","Chalkboard SE",cursive;font-size:15px;text-align:center}
+.pol::before{content:"";position:absolute;top:-9px;left:50%;width:54px;height:18px;margin-left:-27px;background:rgba(255,240,170,.75);transform:rotate(-4deg)}
+.pol em,#albumDetail h2 em{font-style:normal;font-size:12px;font-weight:800;background:#ffd34d;color:#1b1530;border-radius:99px;padding:2px 8px;vertical-align:middle}
+.pol em{position:absolute;top:12px;right:12px;z-index:1}
+.pol.mine{cursor:default}
+#apollo{position:fixed;inset:0;z-index:80;display:none;justify-content:center;align-items:flex-start;background:rgba(5,6,15,.82);padding:14px;font-size:16px;overflow-y:auto}
+#apollo .acard{max-width:640px;width:100%;background:#1a1530;border:2px solid #6fd3ff;border-radius:18px;padding:18px 20px 22px;box-shadow:0 12px 40px rgba(0,0,0,.6);margin:auto}
+#apollo img{display:block;width:100%;max-height:40vh;border-radius:10px;margin-bottom:14px;aspect-ratio:16/9;object-fit:contain;background:#05060f}
+#apollo h2{color:#6fd3ff;font-size:1.35em;margin-bottom:8px}
+#apollo p{line-height:1.55}
+#apollo .afoot{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:16px}
+#apollo a{color:#ffd34d;font-size:13px}
+#albumIntro{position:fixed;inset:0;z-index:70;display:none;justify-content:center;align-items:center;background:rgba(10,8,20,.78);padding:16px;font-size:16px}
+#albumIntro .icard{max-width:560px;width:100%;background:#1a1530;border:2px solid #ffd34d;border-radius:18px;padding:24px 22px 26px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.5)}
+#albumIntro .ipol{display:flex;justify-content:center;margin-bottom:18px}
+#albumIntro .ipol img{width:30%;aspect-ratio:16/9;object-fit:cover;border:6px solid #fbfaf5;border-bottom-width:16px;box-shadow:0 6px 14px rgba(0,0,0,.5);margin:0 -10px}
+#albumIntro .ipol img:nth-child(1){transform:rotate(-8deg)}#albumIntro .ipol img:nth-child(2){transform:rotate(2deg) translateY(-6px);z-index:1}#albumIntro .ipol img:nth-child(3){transform:rotate(9deg)}
+#albumIntro h2{font-size:1.45em;color:#ffd34d;margin-bottom:10px;line-height:1.2}
+#albumIntro p{line-height:1.55;margin-bottom:20px;opacity:.95}
+.pol span small{display:block;font-family:system-ui,sans-serif;font-size:11.5px;font-weight:700;color:#2a8fbf;margin-top:3px}
+#albumDetail{position:fixed;inset:0;z-index:60;display:none;justify-content:center;align-items:flex-start;overflow-y:auto;background:rgba(10,8,20,.72);padding:16px;font-size:16px}
+#albumDetail .dcard{width:100%;max-width:720px;background:#1a1530;border:2px solid rgba(255,255,255,.18);border-radius:16px;padding:16px 18px 22px;margin:auto 0}
+#albumDetail .dtop{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:16px}
+#albumDetail .nav{display:flex;align-items:center;gap:8px;opacity:.95}
+#albumDetail .btn{padding:.4em .9em}
+#albumDetail .pol.big{--r:-1.2deg;cursor:default;max-width:560px;margin:8px auto 18px}
+#albumDetail h2{font-size:1.45em;margin-bottom:10px}
+#albumDetail .chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+#albumDetail .chips b{font-weight:600;font-size:13.5px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:99px;padding:4px 10px}
+#albumDetail p{line-height:1.6;font-size:16.5px}
+#albumDetail a{display:inline-block;margin-top:14px;color:#6fd3ff;font-size:14px;word-break:break-all}
+#dialog.bottom{top:auto;bottom:3%}
+@media (orientation:portrait){
+  #dialog,#dialog.bottom{position:relative;left:auto;right:auto;top:auto;bottom:auto;margin-top:.6em}
+  #title h1{font-size:1.8em}
+}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div id="stage">
+    <canvas id="cv"></canvas>
+    <div id="title">
+      <h1 data-k="title1"></h1>
+      <p data-k="subtitle"></p>
+      <div class="row">
+        <button class="btn big" id="startBtn" data-k="startBtn"></button>
+      </div>
+      <div class="row">
+        <button class="btn ghost sndBtn"></button>
+        <button class="btn ghost langBtn"></button>
+      </div>
+    </div>
+    <div id="toggles" style="display:none">
+      <button class="btn ghost sndBtn"></button>
+      <button class="btn ghost langBtn"></button>
+    </div>
+    <button class="btn" id="albumBtn" data-k="albumBtn"></button>
+    <div id="controls">
+      <div class="pad"><button id="cL">◀</button><button id="cR">▶</button></div>
+      <div class="pad"><button id="cJ">▲</button></div>
+    </div>
+  </div>
+  <div id="dialog"><div class="who"></div><div class="txt"></div><div class="acts"></div></div>
+</div>
+<div id="album"></div>
+<div id="albumDetail"></div>
+<div id="albumIntro"></div>
+<div id="apollo"></div>
+
+<script>
+"use strict";
+/* =========================================================
+   TEXTS (EN / PT)
+   ========================================================= */
+const TX = {
+  title1:{en:'Forgotten <span>Explorers</span>',pt:'Exploradores <span>Esquecidos</span>'},
+  subtitle:{en:'A space mission to bring forgotten stories back to life',pt:'Uma missão espacial para trazer histórias esquecidas de volta à vida'},
+  startBtn:{en:'▶ Start',pt:'▶ Iniciar'},
+  sndOn:{en:'🔊 Sound',pt:'🔊 Som'}, sndOff:{en:'🔇 Sound',pt:'🔇 Som'},
+  langBtn:{en:'🌐 EN → PT',pt:'🌐 PT → EN'},
+  next:{en:'Next ▶',pt:'Avançar ▶'},
+  start:{en:"Let's go! ▶",pt:'Vamos lá! ▶'},
+  takePhoto:{en:'📷 Take photo',pt:'📷 Tirar foto'},
+  again:{en:'↺ Play again',pt:'↺ Jogar de novo'},
+  goMoon:{en:'🌕 Moon',pt:'🌕 Lua'}, goMars:{en:'🔴 Mars',pt:'🔴 Marte'},
+  yes:{en:'YES',pt:'SIM'}, no:{en:'NO',pt:'NÃO'},
+  energy:{en:'ENERGY',pt:'ENERGIA'},
+  oops:{en:'Oops!',pt:'Opa!'}, ouch:{en:'Ouch!',pt:'Ai!'},
+  platHint:{en:'Arrows / A D: move   ·   Space / W: jump',pt:'Setas / A D: mover   ·   Espaço / W: pular'},
+  photoHint:{en:'Frame your photo! Drag the scene to move the camera and use − / + to zoom. Then take the picture!',pt:'Enquadre sua foto! Arraste a cena para mover a câmera e use − / + para dar zoom. Depois, tire a foto!'},
+  zoomIn:{en:'＋',pt:'＋'}, zoomOut:{en:'−',pt:'−'},
+  nISS:{en:'ISS',pt:'ISS'},
+  nRadio:{en:'📻 Mission Control · rocket radio',pt:'📻 Controle da Missão · rádio do foguete'},
+  radio1:{en:"Kssh… This is Mission Control, speaking through your rocket's radio! The rocket will now fly back to orbit and wait for you up there. When your mission is done, just call it and it will come down to pick you up. Good luck, astronaut!",
+          pt:'Kssh… Aqui é o Controle da Missão, falando pelo rádio do seu foguete! O foguete vai voltar para a órbita e esperar por você lá em cima. Quando terminar a missão, é só chamar que ele desce para te buscar. Boa sorte, astronauta!'},
+  radio2:{en:'Kssh… Signal received! Your rocket is leaving orbit and coming down to pick you up.',pt:'Kssh… Sinal recebido! Seu foguete está saindo da órbita e descendo para te buscar.'},
+  callHint:{en:'Mission complete here! Use the radio to call your rocket back from orbit.',pt:'Missão cumprida por aqui! Use o rádio para chamar seu foguete de volta da órbita.'},
+  callRocket:{en:'📡 Call the rocket',pt:'📡 Chamar o foguete'},
+  learnMore:{en:'📖 Learn more',pt:'📖 Saiba mais'},
+  apTitle:{en:'How Apollo 11 did it',pt:'Como a Apollo 11 fez isso'},
+  apText:{en:'On Apollo 11, in July 1969, three astronauts flew to the Moon, but only two of them landed. Neil Armstrong and Buzz Aldrin went down to the surface in the Lunar Module Eagle, while Michael Collins stayed in lunar orbit in the Command Module, Columbia, waiting for them. After 21 hours and 36 minutes on the Moon, the top part of Eagle lifted off and docked with Columbia, and the three astronauts flew home together. The bottom part of Eagle stayed behind on the Moon. Your rocket works the same way: it waits in orbit until you call!',
+          pt:'Na Apollo 11, em julho de 1969, três astronautas viajaram até a Lua, mas só dois pousaram. Neil Armstrong e Buzz Aldrin desceram até a superfície no Módulo Lunar Eagle, enquanto Michael Collins ficou em órbita da Lua no Módulo de Comando, o Columbia, esperando por eles. Depois de 21 horas e 36 minutos na Lua, a parte de cima do Eagle decolou e se acoplou ao Columbia, e os três voltaram juntos para casa. A parte de baixo do Eagle ficou na Lua. Seu foguete funciona do mesmo jeito: ele espera em órbita até você chamar!'},
+  apOk:{en:'Got it! 👍',pt:'Entendi! 👍'},
+  apSrc:{en:'Source: NASA · NSSDCA, Apollo 11 Lunar Module',pt:'Fonte: NASA · NSSDCA, Módulo Lunar da Apollo 11'},
+  apOrbit:{en:'Columbia · Michael Collins (in orbit)',pt:'Columbia · Michael Collins (em órbita)'},
+  apSurface:{en:'Eagle · Armstrong & Aldrin (on the Moon)',pt:'Eagle · Armstrong e Aldrin (na Lua)'},
+  issDock:{en:'Docking complete! Welcome aboard the International Space Station, astronaut. Your rocket is refueled and ready to go.',pt:'Acoplagem concluída! Bem-vindo a bordo da Estação Espacial Internacional, astronauta. Seu foguete foi reabastecido e está pronto para partir.'},
+  newMoon:{en:'🛰️ NEW MISSION: fly to the Moon! Some old explorers are still waiting there to share their stories.',pt:'🛰️ NOVA MISSÃO: voe até a Lua! Alguns velhos exploradores ainda esperam por lá para contar suas histórias.'},
+  newMars:{en:'🛰️ NEW MISSION: head to Mars! A few brave rovers are waiting for you on the Red Planet.',pt:'🛰️ NOVA MISSÃO: siga para Marte! Alguns rovers corajosos esperam por você no Planeta Vermelho.'},
+  launch:{en:'Launch! 🚀',pt:'Decolar! 🚀'},
+  giant:{en:'GIANT DUST STORM! Keep tapping!',pt:'TEMPESTADE GIGANTE! Continue tocando!'},
+  choose:{en:'Where do you want to go first, astronaut?',pt:'Para onde você quer ir primeiro, astronauta?'},
+  chooseNext:{en:'Welcome back to Earth! One more world is waiting for you. Ready?',pt:'Bem-vindo de volta à Terra! Mais um mundo está esperando por você. Pronto?'},
+  thanks:{en:'Thanks for playing! But the adventure is not over: 14 real NASA explorers are waiting in the full album, with your own photos and true stories from their missions. Open it and meet them all!',pt:'Obrigado por jogar! Mas a aventura não acabou: 14 exploradores reais da NASA esperam por você no álbum completo, com as suas fotos e histórias verdadeiras das missões. Abra o álbum e conheça todos eles!'},
+  nMission:{en:'Mission',pt:'Missão'},
+  nLRV:{en:'LRV',pt:'LRV'}, nEagle:{en:'Eagle',pt:'Eagle'}, nSoj:{en:'Sojourner',pt:'Sojourner'},
+  nOppy:{en:'Oppy',pt:'Oppy'}, nSpirit:{en:'Spirit',pt:'Spirit'},
+  capLRV:{en:'LRV · Moon',pt:'LRV · Lua'},
+  capEagle:{en:'Eagle · Apollo 11',pt:'Eagle · Apollo 11'},
+  capMars:{en:'Sojourner, Spirit & Oppy · Mars',pt:'Sojourner, Spirit e Oppy · Marte'},
+
+  intro1:{en:'Every space mission leaves something behind! Some objects are abandoned because their work is done, they stop working, or there is no way to bring them back home.',
+          pt:'Toda missão espacial deixa algo para trás! Alguns objetos são abandonados porque seu trabalho terminou, porque pararam de funcionar ou porque não há como trazê-los de volta para casa.'},
+  intro2:{en:"Your mission is to find these forgotten explorers, take pictures, and discover their stories. Let's bring their memories back to life!",
+          pt:'Sua missão é encontrar esses exploradores esquecidos, tirar fotos e descobrir suas histórias. Vamos trazer as memórias deles de volta à vida!'},
+
+  lrv1:{en:"Well, hello there, little astronaut! I'm the Lunar Roving Vehicle, but you can call me LRV! A long time ago, I explored the Moon with the Apollo astronauts.",
+        pt:'Ora, olá, pequeno astronauta! Eu sou o Veículo de Exploração Lunar, mas pode me chamar de LRV! Há muito tempo, explorei a Lua com os astronautas da Apollo.'},
+  lrv2:{en:'I helped them travel across the lunar surface, explore new places, and collect samples for scientists back on Earth.',
+        pt:'Eu os ajudei a viajar pela superfície lunar, explorar novos lugares e coletar amostras para os cientistas lá na Terra.'},
+  lrv3:{en:'I had many exciting adventures, but my mission is over now. My batteries ran out, and I can no longer move.',
+        pt:'Vivi muitas aventuras emocionantes, mas minha missão já terminou. Minhas baterias acabaram e não consigo mais me mover.'},
+  lrv4:{en:'But wait… maybe you can help me with one last little adventure! Could you find a way to give me some energy?',
+        pt:'Mas espere… talvez você possa me ajudar em uma última pequena aventura! Você consegue encontrar um jeito de me dar um pouco de energia?'},
+  moonGame:{en:'Jump across craters, dodge rocks, and explore the Moon! Collect the lost battery to help bring the Lunar Rover back to life. Watch your steps, astronaut!',
+        pt:'Pule as crateras, desvie das rochas e explore a Lua! Pegue a bateria perdida para trazer o Veículo Lunar de volta à vida. Cuidado onde pisa, astronauta!'},
+  lrv5:{en:"Wow! You did it! I feel full of energy again! Thank you, little astronaut! Now, hop on and let's explore the Moon together. There are still so many things to see!",
+        pt:'Uau! Você conseguiu! Estou cheio de energia de novo! Obrigado, pequeno astronauta! Agora suba e vamos explorar a Lua juntos. Ainda há tantas coisas para ver!'},
+  lrv6:{en:"I'm running out of energy again. I guess this is where our journey ends. I've completed my mission, and it's time for me to rest.",
+        pt:'Minha energia está acabando de novo. Acho que nossa viagem termina aqui. Cumpri minha missão e é hora de descansar.'},
+  lrv7:{en:"Thank you for visiting me and listening to my story! It's nice to know my adventures won't be forgotten. Safe travels, little astronaut!",
+        pt:'Obrigado por me visitar e ouvir minha história! É bom saber que minhas aventuras não serão esquecidas. Boa viagem, pequeno astronauta!'},
+  eagle1:{en:"Oh! A visitor! Welcome to the Moon, little astronaut! I'm the Eagle, or, more precisely, the descent stage of the Apollo 11 Lunar Module.",
+        pt:'Oh! Uma visita! Bem-vindo à Lua, pequeno astronauta! Eu sou o Eagle, ou, mais precisamente, o estágio de descida do Módulo Lunar da Apollo 11.'},
+  eagle2:{en:'I brought the first astronauts to the Moon back in 1969. It was an unforgettable mission! I helped Neil Armstrong and Buzz Aldrin reach the lunar surface. They explored the Moon, collected samples, and made history!',
+        pt:'Eu trouxe os primeiros astronautas à Lua em 1969. Foi uma missão inesquecível! Ajudei Neil Armstrong e Buzz Aldrin a chegar à superfície lunar. Eles exploraram a Lua, coletaram amostras e fizeram história!'},
+  eagle3:{en:'But the Lunar Module had two parts. The upper part carried the astronauts back to orbit, while I stayed here on the Moon. And here I am, still resting on the lunar surface after all these years!',
+        pt:'Mas o Módulo Lunar tinha duas partes. A parte de cima levou os astronautas de volta à órbita, enquanto eu fiquei aqui na Lua. E aqui estou, ainda descansando na superfície lunar depois de todos esses anos!'},
+  eagle4:{en:"I may be just an old piece of spacecraft now, but I was once part of a giant leap for humankind! Would you take a picture of me? I'd love to be remembered by future explorers!",
+        pt:'Posso ser só um pedaço velho de nave espacial agora, mas um dia fiz parte de um grande salto para a humanidade! Você tira uma foto minha? Eu adoraria ser lembrado pelos futuros exploradores!'},
+  eagle5:{en:'Thank you for visiting and listening to my story! Now, my adventures can live on through your photographs. Keep exploring, little astronaut. The universe is full of stories waiting to be discovered.',
+        pt:'Obrigado por visitar e ouvir minha história! Agora minhas aventuras podem continuar vivas por meio das suas fotografias. Continue explorando, pequeno astronauta. O universo está cheio de histórias esperando para serem descobertas.'},
+
+  soj1:{en:"Hello, little explorer! I'm Sojourner, the first rover ever to explore Mars! A long time ago, scientists built me with one big mission: to help answer a very important question about this mysterious red planet.",
+        pt:'Olá, pequeno explorador! Eu sou o Sojourner, o primeiro rover a explorar Marte! Há muito tempo, os cientistas me construíram com uma grande missão: ajudar a responder a uma pergunta muito importante sobre este misterioso planeta vermelho.'},
+  q:{en:'Did Mars have liquid water in the past?',pt:'Marte já teve água líquida no passado?'},
+  soj2:{en:"What's the answer, my friend?",pt:'Qual é a resposta, meu amigo?'},
+  wrong:{en:'Hmm, not quite! Look at the dry riverbeds and the rocks around here… Want to try again?',pt:'Hmm, não exatamente! Repare nos leitos secos de rios e nas rochas por aqui… Quer tentar de novo?'},
+  soj3:{en:"That's right! Great job, explorer! Mars really did have liquid water in the past! Scientists found evidence of ancient rivers, lakes, and minerals formed by water.",
+        pt:'Isso mesmo! Muito bem, explorador! Marte realmente teve água líquida no passado! Os cientistas encontraram evidências de antigos rios, lagos e minerais formados pela água.'},
+  soj4:{en:"I know who can tell you even more about this! My twin brothers Spirit and Opportunity explored these grounds too, and I'm sure they have amazing discoveries to share.",
+        pt:'Eu sei quem pode contar ainda mais sobre isso! Meus irmãos gêmeos, Spirit e Opportunity, também exploraram estas terras, e tenho certeza de que eles têm descobertas incríveis para compartilhar.'},
+  soj5:{en:'The only problem is… Spirit got stuck in soft sand, and Opportunity was caught in a huge dust storm that covered its solar panels and stopped it from generating enough power. Could you help my siblings so we can hear their stories?',
+        pt:'O único problema é que… o Spirit ficou preso na areia fofa, e o Opportunity foi pego por uma enorme tempestade de poeira que cobriu seus painéis solares e o impediu de gerar energia suficiente. Você pode ajudar meus irmãos para ouvirmos suas histórias?'},
+  marsGame:{en:'Quick! Click on the passing sandstorms as fast as you can! Fill the energy bar at the top to help save Spirit and Opportunity!',
+        pt:'Rápido! Toque nas tempestades de areia que passarem, o mais rápido que puder! Encha a barra de energia no topo para salvar o Spirit e o Opportunity!'},
+  soj6:{en:"You did it, congratulations! What a rescue! Thanks to you, Spirit and Opportunity are safe! Well… I hope those two unlucky rovers don't get in trouble again!",
+        pt:'Você conseguiu, parabéns! Que resgate! Graças a você, Spirit e Opportunity estão salvos! Bem… espero que esses dois rovers azarados não se metam em encrenca de novo!'},
+  oppy1:{en:"Hi, I'm Opportunity, but you can call me Oppy!",pt:'Oi, eu sou o Opportunity, mas pode me chamar de Oppy!'},
+  spirit1:{en:"And I'm Spirit! Thank you so much for saving us! You can't imagine how much we've missed rolling across the Martian soil, just like the old days!",
+        pt:'E eu sou o Spirit! Muito obrigado por nos salvar! Você nem imagina o quanto sentimos falta de rodar pelo solo marciano, como nos velhos tempos!'},
+  oppy2:{en:"Oh, the good old days… I almost forgot, you wanted to know more about water on Mars, right? We'd be glad to teach you about it!",
+        pt:'Ah, os bons tempos… Quase esqueci: você queria saber mais sobre a água em Marte, não é? Vamos adorar te ensinar!'},
+  oppy3:{en:"Mars wasn't always the dry, dusty planet we see today. I spent almost 15 years exploring Mars, and I discovered rocks with tiny clues that liquid water once existed here. Some minerals could only have formed in the presence of water!",
+        pt:'Marte nem sempre foi o planeta seco e empoeirado que vemos hoje. Passei quase 15 anos explorando Marte e descobri rochas com pequenas pistas de que um dia existiu água líquida aqui. Alguns minerais só poderiam ter se formado na presença de água!'},
+  oppy4:{en:'My brother Spirit and I traveled across the Red Planet, studying rocks and searching for signs of this ancient past. Together, we helped scientists understand that Mars once had conditions very different from today.',
+        pt:'Meu irmão Spirit e eu viajamos pelo Planeta Vermelho, estudando rochas e procurando sinais desse passado antigo. Juntos, ajudamos os cientistas a entender que Marte já teve condições muito diferentes das de hoje.'},
+  spirit2:{en:'Want to take a picture together? Of course! We want to remember the explorer who helped bring our stories back to life! Say cheese, space hero!',
+        pt:'Quer tirar uma foto juntos? Claro! Queremos lembrar do explorador que ajudou a trazer nossas histórias de volta à vida! Diga xis, herói espacial!'},
+
+  end1:{en:"And so, our mission comes to an end! You didn't just explore the Moon and Mars: you brought forgotten stories back to life.",
+        pt:'E assim, nossa missão chega ao fim! Você não apenas explorou a Lua e Marte: trouxe histórias esquecidas de volta à vida.'},
+  end2:{en:"Every photograph you took, every discovery you uncovered, and every story you heard will help keep these little explorers' memories alive.",
+        pt:'Cada fotografia que você tirou, cada descoberta que fez e cada história que ouviu vão ajudar a manter vivas as memórias desses pequenos exploradores.'},
+  end3:{en:"Because even when a mission ends, its story never has to. And thanks to you, the universe won't forget them! Mission complete, little space journalist. Keep exploring!",
+        pt:'Porque, mesmo quando uma missão termina, sua história não precisa terminar. E, graças a você, o universo não vai esquecê-los! Missão cumprida, pequeno jornalista espacial. Continue explorando!'}
+};
+let lang='en';
+const t=k=>(TX[k]?TX[k][lang]:k);
+
+/* =========================================================
+   SETUP / LAYOUT
+   ========================================================= */
+const W=960,H=540,GROUND=440;
+const $=s=>document.querySelector(s);
+const wrap=$('#wrap'),stage=$('#stage'),cv=$('#cv');let ctx=cv.getContext('2d');
+const dlgEl=$('#dialog'),whoEl=dlgEl.querySelector('.who'),txtEl=dlgEl.querySelector('.txt'),actsEl=dlgEl.querySelector('.acts');
+const DPR=Math.min(2,window.devicePixelRatio||1);
+function resize(){
+  const vw=innerWidth,vh=innerHeight,portrait=vh>vw;
+  const w=portrait?vw-12:Math.min(vw-12,(vh-12)*16/9);
+  stage.style.width=w+'px';stage.style.height=(w*9/16)+'px';wrap.style.width=w+'px';
+  wrap.style.fontSize=Math.max(13,Math.min(21,w/960*18))+'px';
+  cv.width=W*DPR;cv.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);
+}
+addEventListener('resize',resize);resize();
+
+function refreshTexts(){
+  document.querySelectorAll('[data-k]').forEach(el=>el.innerHTML=t(el.dataset.k));
+  document.querySelectorAll('.sndBtn').forEach(b=>b.textContent=t(soundOn?'sndOn':'sndOff'));
+  document.querySelectorAll('.langBtn').forEach(b=>b.textContent=t('langBtn'));
+  document.documentElement.lang=lang==='pt'?'pt-BR':'en';
+  if(dlg.cur){dlg.cur.shown=1e9;renderDlg();}
+}
+
+/* =========================================================
+   AUDIO (WebAudio, no files)
+   ========================================================= */
+let AC=null,master=null,soundOn=true,musicTimer=null,musicStep=0;
+function initAudio(){
+  if(AC){AC.resume&&AC.resume();return;}
+  try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){return;}
+  master=AC.createGain();master.gain.value=soundOn?0.55:0;master.connect(AC.destination);
+  const scale=[261.6,293.7,329.6,392,440,523.3,587.3,659.3];
+  const pattern=[0,2,4,5,4,2,7,5, 0,3,4,6,4,3,5,2];
+  musicTimer=setInterval(()=>{
+    if(!soundOn||!AC)return;
+    const n=pattern[musicStep%pattern.length];
+    tone(scale[n],1.1,'sine',0.035);
+    if(musicStep%8===0)tone(scale[n]/2,2.6,'triangle',0.03);
+    musicStep++;
+  },420);
+}
+function tone(f,dur,type='sine',vol=0.2,slide=0,delay=0){
+  if(!AC)return;
+  const t0=AC.currentTime+delay,o=AC.createOscillator(),g=AC.createGain();
+  o.type=type;o.frequency.setValueAtTime(f,t0);
+  if(slide)o.frequency.exponentialRampToValueAtTime(Math.max(30,f+slide),t0+dur);
+  g.gain.setValueAtTime(0.0001,t0);g.gain.exponentialRampToValueAtTime(vol,t0+0.012);
+  g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
+  o.connect(g);g.connect(master);o.start(t0);o.stop(t0+dur+0.05);
+}
+function noise(dur,vol,freq=1000,delay=0){
+  if(!AC)return;
+  const t0=AC.currentTime+delay,len=Math.floor(AC.sampleRate*dur),buf=AC.createBuffer(1,len,AC.sampleRate),d=buf.getChannelData(0);
+  for(let i=0;i<len;i++)d[i]=Math.random()*2-1;
+  const s=AC.createBufferSource(),f=AC.createBiquadFilter(),g=AC.createGain();
+  s.buffer=buf;f.type='lowpass';f.frequency.value=freq;
+  g.gain.setValueAtTime(vol,t0);g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
+  s.connect(f);f.connect(g);g.connect(master);s.start(t0);
+}
+let wind=null;
+function windStart(level){
+  if(!AC)return;
+  if(!wind){
+    const len=AC.sampleRate*2,buf=AC.createBuffer(1,len,AC.sampleRate),d=buf.getChannelData(0);
+    let last=0;for(let i=0;i<len;i++){const w=Math.random()*2-1;last=(last+0.02*w)/1.02;d[i]=last*3.5;}
+    const src=AC.createBufferSource();src.buffer=buf;src.loop=true;
+    const f=AC.createBiquadFilter();f.type='bandpass';f.frequency.value=520;f.Q.value=.8;
+    const lfo=AC.createOscillator(),lg=AC.createGain();lfo.frequency.value=.22;lg.gain.value=320;lfo.connect(lg);lg.connect(f.frequency);
+    const g=AC.createGain();g.gain.value=0;
+    src.connect(f);f.connect(g);g.connect(master);src.start();lfo.start();
+    wind={src,lfo,g};
+  }
+  wind.g.gain.setTargetAtTime(level*2.2,AC.currentTime,.5);
+}
+function windStop(){if(!wind||!AC)return;const w=wind;wind=null;w.g.gain.setTargetAtTime(0,AC.currentTime,.4);setTimeout(()=>{try{w.src.stop();w.lfo.stop();}catch(_){}},2000);}
+function sfx(n){
+  if(!AC||!soundOn)return;
+  switch(n){
+    case 'click':tone(660,.07,'square',.05);break;
+    case 'blip':tone(780+Math.random()*160,.03,'square',.018);break;
+    case 'jump':tone(320,.28,'sine',.16,380);break;
+    case 'collect':[523,659,784,1046].forEach((f,i)=>tone(f,.25,'triangle',.14,0,i*.08));break;
+    case 'hit':tone(190,.3,'sawtooth',.1,-110);break;
+    case 'oops':tone(420,.45,'triangle',.14,-280);break;
+    case 'poof':noise(.25,.22,1400);tone(520,.12,'sine',.07,380);break;
+    case 'shutter':noise(.06,.45,5000);noise(.08,.35,3000,.09);break;
+    case 'rumble':noise(3.4,.32,260);break;
+    case 'thud':tone(95,.35,'sine',.3,-45);noise(.35,.18,500);break;
+    case 'right':[523,659,784].forEach((f,i)=>tone(f,.2,'triangle',.14,0,i*.09));break;
+    case 'wrong':tone(300,.22,'square',.06,-60);tone(240,.3,'square',.06,-60,.2);break;
+    case 'power':tone(180,.9,'sawtooth',.06,700);tone(360,.9,'sine',.08,900);break;
+    case 'gust':noise(.9,.35,700);break;
+    case 'dock':tone(140,.25,'square',.12,-40);noise(.2,.2,900);tone(880,.15,'sine',.08,0,.25);break;
+    case 'radio':noise(.25,.18,2500);tone(1200,.08,'square',.05,0,.25);tone(1200,.08,'square',.05,0,.38);break;
+    case 'win':[523,659,784,659,784,1046].forEach((f,i)=>tone(f,.3,'triangle',.13,0,i*.12));break;
+  }
+}
+
+/* =========================================================
+   TWEENS / HELPERS
+   ========================================================= */
+const ease={lin:p=>p,inOut:p=>p<.5?2*p*p:1-Math.pow(-2*p+2,2)/2,out:p=>1-Math.pow(1-p,3),in:p=>p*p*p};
+let tweens=[];
+function tween(o,props,dur,e=ease.inOut){
+  return new Promise(res=>{const from={};for(const k in props)from[k]=o[k];tweens.push({o,from,to:props,dur,t:0,e,res});});
+}
+function wait(s){return new Promise(r=>{tweens.push({o:{},from:{},to:{},dur:s,t:0,e:ease.lin,res:r});});}
+function updateTweens(dt){
+  for(const tw of tweens.slice()){
+    tw.t+=dt;const p=Math.min(1,tw.t/tw.dur),v=tw.e(p);
+    for(const k in tw.to)tw.o[k]=tw.from[k]+(tw.to[k]-tw.from[k])*v;
+    if(p>=1){tweens.splice(tweens.indexOf(tw),1);tw.res();}
+  }
+}
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const rnd=(a,b)=>a+Math.random()*(b-a);
+function rr(x,y,w,h,r,fill,stroke,lw){
+  ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();
+  if(fill){ctx.fillStyle=fill;ctx.fill();}
+  if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=lw||1.5;ctx.stroke();}
+}
+function circle(x,y,r,fill){ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fillStyle=fill;ctx.fill();}
+function ellipse(x,y,rx,ry,fill){ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2);ctx.fillStyle=fill;ctx.fill();}
+
+/* =========================================================
+   WORLD STATE
+   ========================================================= */
+const S={bg:'title',alt:0,camX:0,actors:[],shake:0,speed:.15,planet:null,flash:0,fade:0,viewfinder:false,banner:null,speaker:null,moonSegs:null,polaroids:[],float:[],cam:{x:480,y:270,z:1},photoMode:false,blur:0};
+let time=0,game=null,parts=[],photos=[],captureCb=null;
+const stars=[];for(let i=0;i<170;i++)stars.push({x:Math.random()*W,y:Math.random()*H,z:rnd(.2,1),p:Math.random()*6});
+const moonDeco=[];for(let x=-200;x<4000;x+=rnd(110,220))moonDeco.push({x,y:rnd(455,525),rx:rnd(22,60),ry:rnd(5,11)});
+const marsDeco=[];for(let x=-200;x<3000;x+=rnd(60,150))marsDeco.push({x,y:rnd(450,530),r:rnd(4,12)});
+const foil=[];for(let i=0;i<26;i++)foil.push([rnd(-46,46),rnd(-112,-60),rnd(-46,46),rnd(-112,-60)]);
+
+/* =========================================================
+   BACKGROUNDS
+   ========================================================= */
+function drawStars(alpha=1,stream=0){
+  for(const s of stars){
+    if(stream){s.x-=stream*s.z*600*(1/60);if(s.x<0){s.x+=W;s.y=Math.random()*H;}}
+    const a=alpha*(0.5+0.5*Math.sin(time*2+s.p))*s.z;
+    ctx.fillStyle=`rgba(255,255,255,${a})`;
+    if(stream>0.5)ctx.fillRect(s.x,s.y,2+stream*s.z*10,1.4);else ctx.fillRect(s.x,s.y,1.6*s.z+.4,1.6*s.z+.4);
+  }
+}
+function drawPlanet(kind,x,y,r){
+  ctx.save();
+  const glow=ctx.createRadialGradient(x,y,r*.9,x,y,r*1.25);
+  const gc=kind==='earth'?'100,170,255':kind==='mars'?'255,140,90':'220,220,230';
+  glow.addColorStop(0,`rgba(${gc},.35)`);glow.addColorStop(1,`rgba(${gc},0)`);
+  ctx.fillStyle=glow;ctx.beginPath();ctx.arc(x,y,r*1.25,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.clip();
+  if(kind==='earth'){
+    ctx.fillStyle='#2f6fd6';ctx.fillRect(x-r,y-r,r*2,r*2);
+    ctx.fillStyle='#4caf50';
+    [[-.3,-.25,.38,.22],[.25,.1,.3,.4],[-.2,.4,.25,.15],[.45,-.45,.2,.12]].forEach(c=>ellipse(x+c[0]*r,y+c[1]*r,c[2]*r,c[3]*r,'#4caf50'));
+    ctx.fillStyle='rgba(255,255,255,.55)';
+    [[-.1,-.55,.45,.06],[.1,.0,.6,.05],[-.4,.25,.35,.05]].forEach(c=>ellipse(x+c[0]*r,y+c[1]*r,c[2]*r,c[3]*r,'rgba(255,255,255,.6)'));
+  }else if(kind==='mars'){
+    ctx.fillStyle='#c8553a';ctx.fillRect(x-r,y-r,r*2,r*2);
+    [[-.3,.1,.35,.2],[.3,-.2,.25,.15],[.1,.45,.4,.12]].forEach(c=>ellipse(x+c[0]*r,y+c[1]*r,c[2]*r,c[3]*r,'#9c3d28'));
+    ellipse(x,y-r*.92,r*.35,r*.12,'#fff2ea');
+  }else{
+    ctx.fillStyle='#c9c9cf';ctx.fillRect(x-r,y-r,r*2,r*2);
+    [[-.3,-.2,.16],[.25,.2,.22],[.35,-.4,.1],[-.25,.45,.12],[-.55,.1,.09]].forEach(c=>circle(x+c[0]*r,y+c[1]*r,c[2]*r,'#a4a4ad'));
+  }
+  const sh=ctx.createLinearGradient(x-r,y-r,x+r,y+r);sh.addColorStop(0,'rgba(255,255,255,.12)');sh.addColorStop(.55,'rgba(0,0,0,0)');sh.addColorStop(1,'rgba(0,0,20,.6)');
+  ctx.fillStyle=sh;ctx.fillRect(x-r,y-r,r*2,r*2);
+  ctx.restore();
+}
+function drawBg(){
+  const k=S.bg;
+  if(k==='title'||k==='space'){
+    ctx.fillStyle='#05060f';ctx.fillRect(0,0,W,H);
+    const neb=ctx.createRadialGradient(300,200,10,300,200,420);neb.addColorStop(0,'rgba(90,60,160,.25)');neb.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=neb;ctx.fillRect(0,0,W,H);
+    drawStars(1,k==='space'?S.speed:0);
+    if(k==='title'){drawPlanet('earth',790,560,300);drawPlanet('moon',170,120,34);drawPlanet('mars',300,70,18);}
+    if(k==='space'&&S.planet)drawPlanet(S.planet.kind,S.planet.x,S.planet.y,S.planet.r);
+  }else if(k==='earth'){
+    const a=S.alt;
+    const g=ctx.createLinearGradient(0,0,0,H);
+    g.addColorStop(0,mix('#3a4fa8','#05060f',a));g.addColorStop(1,mix('#ffb36b','#05060f',Math.min(1,a*1.4)));
+    ctx.fillStyle=g;ctx.fillRect(0,0,W,H);drawStars(a);
+    const gy=GROUND+a*700;
+    ctx.fillStyle='#3d7d4a';ctx.beginPath();ctx.moveTo(0,gy);for(let x=0;x<=W;x+=40)ctx.lineTo(x,gy-8*Math.sin(x*.01));ctx.lineTo(W,H+800);ctx.lineTo(0,H+800);ctx.fill();
+    ctx.fillStyle='#777';ctx.fillRect(460,gy-6,200,8);
+    ctx.strokeStyle='#c0392b';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(650,gy);ctx.lineTo(650,gy-210);ctx.moveTo(690,gy);ctx.lineTo(690,gy-210);ctx.stroke();
+    ctx.lineWidth=2;for(let y=0;y<210;y+=21){ctx.beginPath();ctx.moveTo(650,gy-y);ctx.lineTo(690,gy-y-21);ctx.moveTo(690,gy-y);ctx.lineTo(650,gy-y-21);ctx.stroke();}
+    ctx.fillStyle='#c0392b';ctx.fillRect(600,gy-150,52,5);
+  }else if(k==='moon'){
+    ctx.fillStyle='#04040a';ctx.fillRect(0,0,W,H);drawStars(.9);
+    drawPlanet('earth',820,90,36);
+    ctx.fillStyle='#3d3d46';ctx.beginPath();ctx.moveTo(0,H);
+    for(let x=0;x<=W;x+=16){const wx=x+S.camX*.3;ctx.lineTo(x,385-22*Math.sin(wx*.004)-10*Math.sin(wx*.013));}
+    ctx.lineTo(W,H);ctx.fill();
+    const segs=S.moonSegs||[[-99999,99999]];
+    for(const sg of segs){
+      const x0=sg[0]-S.camX,x1=sg[1]-S.camX;if(x1<-50||x0>W+50)continue;
+      ctx.fillStyle='#8f8f97';ctx.fillRect(x0,GROUND,x1-x0,H-GROUND);
+      ctx.fillStyle='#b9b9c0';ctx.fillRect(x0,GROUND,x1-x0,4);
+      if(S.moonSegs){ellipse(x0,GROUND+2,12,6,'#b9b9c0');ellipse(x1,GROUND+2,12,6,'#b9b9c0');}
+    }
+    if(S.moonSegs){
+      for(let i=0;i<segs.length-1;i++){
+        const a0=segs[i][1]-S.camX,a1=segs[i+1][0]-S.camX;
+        const g2=ctx.createLinearGradient(0,GROUND,0,H);g2.addColorStop(0,'#2a2a31');g2.addColorStop(1,'#08080c');
+        ctx.fillStyle=g2;ctx.fillRect(a0,GROUND+4,a1-a0,H);
+      }
+    }
+    for(const d of moonDeco){const x=d.x-S.camX;if(x<-80||x>W+80)continue;
+      if(S.moonSegs&&!onSeg(d.x-d.rx)||S.moonSegs&&!onSeg(d.x+d.rx))continue;
+      ellipse(x,d.y,d.rx,d.ry,'#76767e');ellipse(x,d.y-1.5,d.rx*.85,d.ry*.6,'#6a6a72');}
+  }else if(k==='mars'){
+    const g=ctx.createLinearGradient(0,0,0,GROUND);g.addColorStop(0,'#e9b98d');g.addColorStop(1,'#d58a5c');
+    ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+    const sun=ctx.createRadialGradient(170,95,2,170,95,40);sun.addColorStop(0,'rgba(240,250,255,1)');sun.addColorStop(.25,'rgba(200,225,255,.8)');sun.addColorStop(1,'rgba(200,225,255,0)');
+    ctx.fillStyle=sun;ctx.fillRect(120,45,100,100);
+    ctx.fillStyle='#b9694a';ctx.beginPath();ctx.moveTo(0,GROUND);
+    for(let x=0;x<=W;x+=12){const wx=x+S.camX*.3;let h=Math.sin(wx*.006)*40+Math.sin(wx*.017)*12;h=Math.min(h,24);ctx.lineTo(x,370-h);}
+    ctx.lineTo(W,GROUND);ctx.fill();
+    ctx.fillStyle='#a8573a';ctx.beginPath();ctx.moveTo(0,GROUND);
+    for(let x=0;x<=W;x+=12){const wx=x+S.camX*.6;ctx.lineTo(x,412-10*Math.sin(wx*.01));}
+    ctx.lineTo(W,GROUND);ctx.fill();
+    ctx.fillStyle='#b9643d';ctx.fillRect(0,GROUND,W,H-GROUND);
+    ctx.fillStyle='#d07a4d';ctx.fillRect(0,GROUND,W,4);
+    ctx.strokeStyle='rgba(120,60,35,.35)';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-20-S.camX*.9,500);ctx.bezierCurveTo(250,470,500,530,980,488);ctx.stroke();
+    for(const d of marsDeco){const x=d.x-S.camX;if(x<-20||x>W+20)continue;ellipse(x,d.y,d.r*1.4,d.r*.8,'#7f3b22');ellipse(x-d.r*.3,d.y-d.r*.3,d.r*.6,d.r*.3,'#a85a38');}
+  }else if(k==='table'){
+    const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#7b4a2a');g.addColorStop(1,'#5a3319');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+    ctx.strokeStyle='rgba(0,0,0,.25)';ctx.lineWidth=2;for(let y=60;y<H;y+=95){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+    ctx.strokeStyle='rgba(255,220,180,.06)';ctx.lineWidth=1;for(let i=0;i<40;i++){const y=(i*37)%H;ctx.beginPath();ctx.moveTo(0,y);ctx.bezierCurveTo(300,y+8,600,y-8,W,y+4);ctx.stroke();}
+    const v=ctx.createRadialGradient(W/2,H/2,200,W/2,H/2,620);v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(0,0,0,.55)');ctx.fillStyle=v;ctx.fillRect(0,0,W,H);
+  }
+}
+function mix(a,b,p){const pa=hex(a),pb=hex(b);return `rgb(${pa.map((v,i)=>Math.round(v+(pb[i]-v)*p)).join(',')})`;}
+function hex(h){return [1,3,5].map(i=>parseInt(h.substr(i,2),16));}
+
+/* =========================================================
+   CHARACTERS
+   ========================================================= */
+function eyes(x,y,r,gap,a,look=1){
+  const blink=!a.noBlink&&((time+(a.seed||0))%4)<.13;
+  for(const dx of [-gap,gap]){
+    if(a.sleep||blink){ctx.strokeStyle='#222';ctx.lineWidth=r*.35;ctx.beginPath();ctx.arc(x+dx,y,r*.7,.2,Math.PI-.2);ctx.stroke();}
+    else{
+      circle(x+dx,y,r,'#fff');
+      circle(x+dx+look*r*.3,y+(a.tired?r*.25:0),r*.5,'#1c1c2a');
+      circle(x+dx+look*r*.3+r*.18,y-r*.2,r*.16,'#fff');
+      if(a.tired){ctx.fillStyle=a.lidColor||'#9aa';ctx.beginPath();ctx.arc(x+dx,y,r+.5,Math.PI,0);ctx.fill();}
+    }
+  }
+}
+function drawAstro(a){
+  const ph=a.walking?Math.sin(time*10):0;
+  ctx.save();ctx.translate(a.x-S.camX,a.y+(a.bob||0));ctx.scale((a.s||1)*(a.facing||1),a.s||1);
+  ctx.lineJoin='round';
+  rr(-21,-60,11,28,4,'#c3c7d2','#8f95a3');
+  ctx.save();ctx.translate(-4,-50);ctx.rotate(-ph*.5-.1);rr(-4,0,8,22,4,'#e3e6ee','#8f95a3');ctx.restore();
+  for(const [lx,s] of [[-7,1],[5,-1]]){
+    ctx.save();ctx.translate(lx,-24);ctx.rotate(ph*.45*s);
+    rr(-5,0,10,22,4,'#eef0f5','#8f95a3');rr(-6,17,13,8,3,'#7c8190');ctx.restore();
+  }
+  rr(-14,-54,28,33,9,'#f6f7fa','#8f95a3');
+  rr(-7,-45,14,9,2,'#d5dae4');circle(-3,-41,1.8,'#e74c3c');circle(3,-41,1.8,'#3498db');
+  ctx.save();ctx.translate(10,-50);
+  if(a.wave)ctx.rotate(-2.5+Math.sin(time*11)*.35);else ctx.rotate(ph*.5+.15);
+  rr(-4,0,8,22,4,'#f6f7fa','#8f95a3');circle(0,22,4.5,'#d0d4dd');ctx.restore();
+  circle(0,-66,16,'#f6f7fa');ctx.strokeStyle='#8f95a3';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(0,-66,16,0,Math.PI*2);ctx.stroke();
+  const vg=ctx.createLinearGradient(0,-76,8,-56);vg.addColorStop(0,'#16305c');vg.addColorStop(1,'#5fb0ff');
+  ctx.beginPath();ctx.ellipse(4,-66,10.5,8.5,0,0,Math.PI*2);ctx.fillStyle=vg;ctx.fill();
+  ellipse(1,-70,3.5,2,'rgba(255,255,255,.75)');
+  ctx.restore();
+}
+function drawRocket(a){
+  ctx.save();ctx.translate(a.x-S.camX,a.y);ctx.rotate(a.rot||0);ctx.scale(a.s||1,a.s||1);
+  if(a.flame){
+    const f=a.flame*(0.85+Math.random()*.3);
+    ctx.fillStyle='rgba(255,140,40,.85)';ctx.beginPath();ctx.moveTo(-13,10);ctx.quadraticCurveTo(0,10+70*f,13,10);ctx.fill();
+    ctx.fillStyle='rgba(255,230,120,.95)';ctx.beginPath();ctx.moveTo(-7,10);ctx.quadraticCurveTo(0,10+40*f,7,10);ctx.fill();
+  }
+  ctx.fillStyle='#6b6f7a';ctx.beginPath();ctx.moveTo(-12,0);ctx.lineTo(12,0);ctx.lineTo(15,11);ctx.lineTo(-15,11);ctx.fill();
+  ctx.fillStyle='#e04a3a';
+  ctx.beginPath();ctx.moveTo(-22,-40);ctx.lineTo(-42,6);ctx.lineTo(-22,-2);ctx.fill();
+  ctx.beginPath();ctx.moveTo(22,-40);ctx.lineTo(42,6);ctx.lineTo(22,-2);ctx.fill();
+  const bg=ctx.createLinearGradient(-22,0,22,0);bg.addColorStop(0,'#cfd3db');bg.addColorStop(.4,'#ffffff');bg.addColorStop(1,'#b5bac4');
+  ctx.fillStyle=bg;ctx.beginPath();ctx.moveTo(-22,0);ctx.lineTo(-22,-100);ctx.quadraticCurveTo(-20,-128,0,-156);ctx.quadraticCurveTo(20,-128,22,-100);ctx.lineTo(22,0);ctx.closePath();ctx.fill();
+  ctx.save();ctx.clip();ctx.fillStyle='#e04a3a';ctx.fillRect(-30,-170,60,58);ctx.fillRect(-30,-18,60,6);ctx.restore();
+  circle(0,-72,13,'#9aa1ad');circle(0,-72,10,'#1d3b6e');
+  if(a.passenger){
+    ctx.save();ctx.beginPath();ctx.arc(0,-72,10,0,Math.PI*2);ctx.clip();
+    circle(0,-68,8,'#f6f7fa');ellipse(2,-68,5,4,'#3d7ccf');ctx.restore();
+    if(a.wave){ctx.save();ctx.translate(13,-78);ctx.rotate(Math.sin(time*11)*.4);rr(-3,-12,6,12,3,'#f6f7fa','#8f95a3');circle(0,-13,4,'#d0d4dd');ctx.restore();}
+  }
+  ellipse(-5,-77,3,2,'rgba(255,255,255,.6)');
+  ctx.restore();
+}
+function wheel(x,y,r,rot,c='#55575e'){
+  ctx.save();ctx.translate(x,y);ctx.rotate(rot||0);
+  circle(0,0,r,c);circle(0,0,r*.78,'#2c2d32');
+  ctx.strokeStyle='#8a8d96';ctx.lineWidth=Math.max(1,r*.1);
+  for(let i=0;i<6;i++){ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(Math.cos(i*Math.PI/3)*r*.78,Math.sin(i*Math.PI/3)*r*.78);ctx.stroke();}
+  circle(0,0,r*.25,'#b8bbc3');ctx.restore();
+}
+function drawLRV(a){
+  ctx.save();ctx.translate(a.x-S.camX,a.y+(a.bob||0));ctx.scale(a.s||1,a.s||1);
+  if(a.rider){ctx.save();drawAstro({x:-8+S.camX,y:-26,s:.82,facing:1,wave:a.riderWave});ctx.restore();}
+  ctx.strokeStyle='#9da2ab';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(48,-36);ctx.lineTo(50,-92);ctx.stroke();
+  ctx.fillStyle='#eef0f4';ctx.beginPath();ctx.moveTo(26,-96);ctx.quadraticCurveTo(50,-128,74,-96);ctx.closePath();ctx.fill();
+  ctx.strokeStyle='#b5b9c2';ctx.lineWidth=1;for(let i=-2;i<=2;i++){ctx.beginPath();ctx.moveTo(50,-110);ctx.lineTo(50+i*11,-96);ctx.stroke();}
+  rr(-42,-62,10,30,3,'#5b6f8f');rr(-14,-62,10,30,3,'#5b6f8f');
+  rr(-48,-50,90,13,3,'#a4a9b3','#7c818b');
+  ctx.strokeStyle='#7c818b';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(30,-36);ctx.lineTo(36,-60);ctx.stroke();
+  rr(28,-68,18,10,2,'#6c717b');
+  circle(32,-63,2.4,a.lit?'#4dff7a':'#553333');
+  rr(-78,-38,156,10,3,'#c2c6ce','#7c818b');
+  for(const wx of [-55,55]){
+    ctx.fillStyle='#8c919a';ctx.beginPath();ctx.arc(wx,-22,24,Math.PI,0);ctx.lineTo(wx+24,-26);ctx.lineTo(wx-24,-26);ctx.fill();
+    wheel(wx,-18,18,a.wroll||0);
+  }
+  rr(62,-64,26,18,4,'#d9dce2','#7c818b');circle(88,-55,4,'#30343d');
+  eyes(70,-55,4.6,7,{...a,lidColor:'#d9dce2'},1);
+  if(a.lit){ctx.globalAlpha=.25+.15*Math.sin(time*6);circle(32,-63,8,'#4dff7a');ctx.globalAlpha=1;}
+  ctx.restore();
+}
+function drawEagle(a){
+  ctx.save();ctx.translate(a.x-S.camX,a.y+(a.bob||0));ctx.scale(a.s||1,a.s||1);
+  ctx.strokeStyle='#b88a2a';ctx.lineWidth=4;
+  ctx.beginPath();ctx.moveTo(-30,-62);ctx.lineTo(-58,-4);ctx.moveTo(30,-62);ctx.lineTo(58,-4);ctx.stroke();
+  ctx.strokeStyle='#8a8f99';ctx.lineWidth=5;
+  ctx.beginPath();ctx.moveTo(-44,-70);ctx.lineTo(-78,-6);ctx.moveTo(44,-70);ctx.lineTo(78,-6);ctx.stroke();
+  ellipse(-80,-3,15,5,'#9aa0aa');ellipse(80,-3,15,5,'#9aa0aa');ellipse(-58,-2,11,4,'#8a8f99');ellipse(58,-2,11,4,'#8a8f99');
+  ctx.strokeStyle='#cfd3da';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(-70,-20);ctx.lineTo(-48,-62);ctx.moveTo(-62,-16);ctx.lineTo(-40,-58);ctx.stroke();
+  for(let i=0;i<5;i++){const y=-24-i*8;ctx.beginPath();ctx.moveTo(-68+i*4,y);ctx.lineTo(-60+i*4,y+4);ctx.stroke();}
+  ctx.fillStyle='#3b3d44';ctx.beginPath();ctx.moveTo(-14,-58);ctx.lineTo(14,-58);ctx.lineTo(19,-42);ctx.lineTo(-19,-42);ctx.fill();
+  const gg=ctx.createLinearGradient(-50,-115,50,-58);gg.addColorStop(0,'#ffe08a');gg.addColorStop(.45,'#d9a43a');gg.addColorStop(1,'#9b6a17');
+  ctx.fillStyle=gg;ctx.beginPath();ctx.moveTo(-40,-116);ctx.lineTo(40,-116);ctx.lineTo(52,-100);ctx.lineTo(52,-70);ctx.lineTo(40,-58);ctx.lineTo(-40,-58);ctx.lineTo(-52,-70);ctx.lineTo(-52,-100);ctx.closePath();ctx.fill();
+  ctx.strokeStyle='rgba(255,245,200,.45)';ctx.lineWidth=1;for(const f of foil){ctx.beginPath();ctx.moveTo(f[0],f[1]);ctx.lineTo(f[2],f[3]);ctx.stroke();}
+  rr(-44,-122,88,7,2,'#55575e');
+  rr(-16,-110,32,8,2,'rgba(255,255,255,.85)');ctx.fillStyle='#2b2b2b';ctx.font='bold 6px sans-serif';ctx.textAlign='center';ctx.fillText('APOLLO 11',0,-104);
+  eyes(0,-84,7,15,{...a,lidColor:'#d9a43a'},-1);
+  ctx.restore();
+}
+function drawSoj(a){
+  ctx.save();ctx.translate(a.x-S.camX,a.y+(a.bob||0));ctx.scale(a.s||1,a.s||1);
+  ctx.strokeStyle='#8a8d96';ctx.lineWidth=2.4;ctx.beginPath();ctx.moveTo(-22,-7);ctx.lineTo(-8,-20);ctx.lineTo(0,-7);ctx.moveTo(-8,-20);ctx.lineTo(22,-7);ctx.stroke();
+  for(const wx of [-22,0,22])wheel(wx,-7,7,a.wroll||0,'#6a6c73');
+  rr(-24,-32,48,13,3,'#d6d8dd','#8a8d96');
+  rr(-28,-38,56,7,2,'#22335e');ctx.strokeStyle='#4f6aa8';ctx.lineWidth=1;for(let x=-24;x<28;x+=7){ctx.beginPath();ctx.moveTo(x,-38);ctx.lineTo(x,-31);ctx.stroke();}
+  ctx.strokeStyle='#8a8d96';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(-18,-38);ctx.lineTo(-18,-58);ctx.stroke();circle(-18,-59,2.5,'#ccc');
+  rr(18,-31,12,10,2,'#c4c7ce');
+  eyes(24,-26,3.2,3.8,{...a,lidColor:'#c4c7ce'},1);
+  ctx.restore();
+}
+function drawMER(a){
+  ctx.save();ctx.translate(a.x-S.camX,a.y+(a.bob||0)+(a.sink||0)*14);ctx.scale(a.s||1,a.s||1);
+  const dust=a.dust||0;
+  ctx.strokeStyle='#8a8d96';ctx.lineWidth=3.5;ctx.beginPath();ctx.moveTo(-42,-12);ctx.lineTo(-18,-34);ctx.lineTo(4,-12);ctx.moveTo(-18,-34);ctx.lineTo(42,-12);ctx.stroke();
+  for(const wx of [-42,0,42])wheel(wx,-12,12,a.wroll||0,'#5f6168');
+  rr(-38,-52,76,22,4,'#dcdde2','#8a8d96');
+  rr(-30,-46,60,4,2,a.accent||'#5fb4ff');
+  ctx.fillStyle='#1c2950';ctx.beginPath();ctx.moveTo(-82,-58);ctx.lineTo(82,-58);ctx.lineTo(76,-50);ctx.lineTo(-76,-50);ctx.closePath();ctx.fill();
+  ctx.strokeStyle='#3e5ca3';ctx.lineWidth=1;for(let x=-74;x<80;x+=9){ctx.beginPath();ctx.moveTo(x,-58);ctx.lineTo(x,-50);ctx.stroke();}
+  ctx.strokeStyle='#9da2ab';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(26,-58);ctx.lineTo(26,-112);ctx.stroke();
+  ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(-26,-58);ctx.lineTo(-26,-90);ctx.stroke();
+  ctx.save();ctx.translate(26,-120);ctx.rotate(a.headTilt||0);
+  rr(-18,-10,40,18,4,'#e2e3e8','#8a8d96');eyes(4,-1,4.8,8.5,{...a,lidColor:'#e2e3e8'},1);ctx.restore();
+  if(dust>0.01){
+    ctx.fillStyle=`rgba(196,128,78,${.92*dust})`;
+    ctx.beginPath();ctx.moveTo(-84,-60);ctx.lineTo(84,-60);ctx.lineTo(78,-49);ctx.lineTo(-78,-49);ctx.closePath();ctx.fill();
+    rr(-39,-53,78,24,4,`rgba(196,128,78,${.6*dust})`);
+    ctx.save();ctx.translate(26,-120);rr(-19,-11,42,20,4,`rgba(196,128,78,${.55*dust})`);ctx.restore();
+  }
+  ctx.restore();
+  if(a.sink>0.01){
+    ctx.save();ctx.translate(a.x-S.camX,a.y);ctx.scale(a.s||1,a.s||1);
+    ctx.fillStyle='#c46d43';ctx.beginPath();ctx.ellipse(0,2,82,10+22*a.sink,0,Math.PI,0);ctx.fill();
+    ctx.fillStyle='#d4824f';ctx.beginPath();ctx.ellipse(0,0,70,6+14*a.sink,0,Math.PI,0);ctx.fill();
+    ctx.restore();
+  }
+}
+function drawISS(a){
+  ctx.save();ctx.translate(a.x-S.camX,a.y+(a.bob||0));ctx.scale(a.s||1,a.s||1);
+  for(const x of [-150,-112,112,150])for(const sg of [-1,1]){
+    const y0=sg<0?-104:10;line([[x,0],[x,sg*104]],'#8a8f99',2);
+    rr(x-13,y0,26,94,2,'#7a5a2a');ctx.strokeStyle='#b08a4a';ctx.lineWidth=1;
+    for(let yy=y0+8;yy<y0+94;yy+=9){ctx.beginPath();ctx.moveTo(x-13,yy);ctx.lineTo(x+13,yy);ctx.stroke();}
+    line([[x,y0],[x,y0+94]],'#5a4420',1.5);
+  }
+  rr(-175,-6,350,12,2,'#a4a9b3');ctx.strokeStyle='#6e737d';ctx.lineWidth=1;
+  for(let x=-172;x<172;x+=12){ctx.beginPath();ctx.moveTo(x,-6);ctx.lineTo(x+12,6);ctx.stroke();}
+  rr(-58,-66,16,58,2,'#eef0f4','#aab');rr(42,-66,16,58,2,'#eef0f4','#aab');
+  line([[0,6],[0,22]],'#8a8f99',4);
+  rr(-74,22,148,24,11,'#e6e8ec','#9aa0aa');
+  [-40,0,40].forEach(x=>{ctx.strokeStyle='#b5bac4';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(x,23);ctx.lineTo(x,45);ctx.stroke();});
+  rr(-84,28,12,12,3,'#8a8f99');
+  rr(74,26,22,16,6,'#d6d8dd','#9aa0aa');
+  eyes(0,34,5,11,{...a,lidColor:'#e6e8ec'},1);
+  ctx.restore();
+}
+const DRAW={iss:drawISS,astro:drawAstro,rocket:drawRocket,lrv:drawLRV,eagle:drawEagle,soj:drawSoj,mer:drawMER};
+const WHO2ID={nRadio:'rocket',nISS:'iss',nLRV:'lrv',nEagle:'eagle',nSoj:'soj',nOppy:'oppy',nSpirit:'spirit'};
+
+/* =========================================================
+   PARTICLES
+   ========================================================= */
+function burst(x,y,n,color,spd=160,life=.8,r=4,g=0){
+  for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,s=rnd(.3,1)*spd;parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life,max:life,color,r:rnd(r*.5,r),g});}
+}
+function updateParts(dt){
+  for(const p of parts){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=p.g*dt;p.vx*=.98;p.life-=dt;}
+  parts=parts.filter(p=>p.life>0);
+}
+function drawParts(){
+  for(const p of parts){ctx.globalAlpha=Math.max(0,p.life/p.max);circle(p.x-S.camX,p.y,p.r,p.color);}
+  ctx.globalAlpha=1;
+}
+
+/* =========================================================
+   DIALOG SYSTEM
+   ========================================================= */
+const dlg={cur:null};
+function openDlg(who,key,acts){
+  dlg.cur={who,key,acts,shown:0,blipN:0};
+  S.speaker=WHO2ID[who]||null;
+  dlgEl.style.display='block';renderDlg();
+}
+function renderDlg(){
+  const c=dlg.cur;if(!c)return;
+  whoEl.textContent=c.who?t(c.who):'';whoEl.style.display=c.who?'block':'none';
+  txtEl.textContent=t(c.key).slice(0,Math.floor(c.shown));
+  actsEl.innerHTML='';
+  c.acts.forEach(a=>{
+    const b=document.createElement('button');b.className='btn '+(a.cls||'');b.textContent=t(a.k);
+    b.onclick=e=>{e.stopPropagation();
+      if(a.next&&c.shown<t(c.key).length){c.shown=1e9;txtEl.textContent=t(c.key);return;}
+      if(a.keep){sfx('click');a.fn();return;}
+      sfx('click');closeDlg();a.fn();};
+    actsEl.appendChild(b);
+  });
+}
+function closeDlg(){dlg.cur=null;S.speaker=null;dlgEl.style.display='none';}
+function updateDlg(dt){
+  const c=dlg.cur;if(!c)return;const full=t(c.key);
+  if(c.shown<full.length){
+    c.shown+=dt*48;const n=Math.floor(c.shown);txtEl.textContent=full.slice(0,n);
+    if(n-c.blipN>=3){c.blipN=n;if(c.who)sfx('blip');}
+  }
+}
+dlgEl.addEventListener('click',()=>{
+  const c=dlg.cur;if(!c)return;const full=t(c.key);
+  if(c.shown<full.length){c.shown=1e9;txtEl.textContent=full;return;}
+  if(c.acts.length===1&&c.acts[0].next){sfx('click');const f=c.acts[0].fn;closeDlg();f();}
+});
+addEventListener('keydown',e=>{
+  if(game&&game.type==='plat')return;
+  if((e.key==='Enter'||e.key===' ')&&dlg.cur){e.preventDefault();dlgEl.click();}
+});
+function say(who,key){return new Promise(res=>openDlg(who,key,[{k:'next',next:true,fn:res}]));}
+function ask(who,key,opts){return new Promise(res=>openDlg(who,key,opts.map(o=>({k:o.k,cls:o.cls,fn:()=>res(o.id)}))));}
+function photo(capKey){
+  return new Promise(res=>{
+    S.viewfinder=true;S.photoMode=true;
+    openDlg(null,'photoHint',[
+      {k:'zoomOut',cls:'ghost',keep:true,fn:()=>zoomCam(-.25)},
+      {k:'zoomIn',cls:'ghost',keep:true,fn:()=>zoomCam(.25)},
+      {k:'takePhoto',cls:'blue',fn:()=>{
+        S.viewfinder=false;sfx('shutter');
+        captureCb=img=>{
+          const old=photos.findIndex(p=>p.cap===capKey);if(old>=0)photos.splice(old,1);
+          photos.push({img,cap:capKey});S.flash=1;S.photoMode=false;
+          setTimeout(()=>{tween(S.cam,{x:W/2,y:H/2,z:1},.6).then(res);},700);
+        };
+      }}]);
+  });
+}
+function clampCam(){const c=S.cam,hw=W/(2*c.z),hh=H/(2*c.z);c.x=clamp(c.x,hw,W-hw);c.y=clamp(c.y,hh,H-hh);}
+function zoomCam(d){S.cam.z=clamp(S.cam.z+d,1,3);clampCam();}
+let camDrag=null;
+cv.addEventListener('pointerdown',e=>{if(!S.photoMode)return;camDrag={x:e.clientX,y:e.clientY};try{cv.setPointerCapture(e.pointerId);}catch(_){}});
+cv.addEventListener('pointermove',e=>{
+  if(!camDrag||!S.photoMode)return;
+  const r=cv.getBoundingClientRect(),k=W/r.width/S.cam.z;
+  S.cam.x-=(e.clientX-camDrag.x)*k;S.cam.y-=(e.clientY-camDrag.y)*k;camDrag={x:e.clientX,y:e.clientY};clampCam();
+});
+['pointerup','pointercancel'].forEach(ev=>cv.addEventListener(ev,()=>camDrag=null));
+cv.addEventListener('wheel',e=>{if(!S.photoMode)return;e.preventDefault();zoomCam(e.deltaY<0?.15:-.15);},{passive:false});
+addEventListener('keydown',e=>{
+  if(!S.photoMode)return;const st=30/S.cam.z;
+  if(e.key==='ArrowLeft')S.cam.x-=st;if(e.key==='ArrowRight')S.cam.x+=st;if(e.key==='ArrowUp')S.cam.y-=st;if(e.key==='ArrowDown')S.cam.y+=st;
+  if(e.key==='+'||e.key==='=')zoomCam(.25);if(e.key==='-')zoomCam(-.25);clampCam();
+});
+
+/* =========================================================
+   MINIGAME 1: MOON PLATFORMER
+   ========================================================= */
+const SEGS=[[0,520],[650,1100],[1250,1500],[1650,1980],[2140,2500],[2690,2900],[3080,3400],[3580,4140]];
+const PLATS=[{x:850,y:340,w:110},{x:1480,y:322,w:110},{x:1985,y:336,w:120},{x:2555,y:345,w:80},{x:2950,y:330,w:90},{x:3250,y:300,w:100},{x:3880,y:320,w:140}];
+const BATTERY={x:3950,y:286};
+const LEVEL_END=4140;
+const keys={l:false,r:false};let jumpQ=false;
+function onSeg(x){return SEGS.some(s=>x>=s[0]&&x<=s[1]);}
+function groundAt(x){return onSeg(x)?GROUND:null;}
+function platformer(){
+  return new Promise(res=>{
+    S.bg='moon';S.moonSegs=SEGS;S.actors=[];S.camX=0;
+    game={type:'plat',p:{x:80,y:GROUND,vx:0,vy:0,on:true,face:1,inv:0,kb:0,coy:0},rocks:[],rockT:2.5,cp:80,res,got:false,msg:null,msgT:0};
+    $('#controls').style.display='flex';
+  });
+}
+function updatePlat(g,dt){
+  const p=g.p;
+  if(g.got){g.gotT-=dt;if(g.gotT<=0){$('#controls').style.display='none';const r=g.res;game=null;S.moonSegs=null;r();}return;}
+  const dir=(keys.r?1:0)-(keys.l?1:0);
+  if(p.kb>0){p.kb-=dt;}else{p.vx=dir*235;if(dir)p.face=dir;}
+  p.vy+=900*dt;
+  if(jumpQ&&(p.on||p.coy>0)){p.vy=-525;p.on=false;p.coy=0;sfx('jump');burst(p.x,p.y,6,'#b9b9c0',60,.5,3);}
+  jumpQ=false;
+  const py=p.y;p.x+=p.vx*dt;p.y+=p.vy*dt;p.x=clamp(p.x,20,LEVEL_END-20);
+  p.on=false;
+  if(p.vy>=0){
+    if(py<=GROUND+.5&&p.y>=GROUND)for(let i=0;i<SEGS.length;i++){const s=SEGS[i];if(p.x>s[0]-6&&p.x<s[1]+6){p.y=GROUND;p.vy=0;p.on=true;g.cp=Math.max(g.cp,s[0]+40);break;}}
+    for(const pl of PLATS)if(p.x>pl.x-6&&p.x<pl.x+pl.w+6&&py<=pl.y+.5&&p.y>=pl.y){p.y=pl.y;p.vy=0;p.on=true;}
+  }
+  if(p.y>GROUND+3)for(const s of SEGS){if(p.x>s[0]-12&&p.x<s[1]+12){p.x=(p.x<(s[0]+s[1])/2)?s[0]-12:s[1]+12;}}
+  p.coy=p.on?.1:p.coy-dt;
+  if(p.inv>0)p.inv-=dt;
+  if(p.y>H+90){p.x=g.cp;p.y=GROUND-120;p.vy=0;p.vx=0;p.inv=1.4;sfx('oops');g.msg='oops';g.msgT=1.2;}
+  S.camX=clamp(p.x-330,0,LEVEL_END-W);
+  g.rockT-=dt;
+  if(g.rockT<=0&&p.x<BATTERY.x-380){
+    g.rockT=rnd(1.1,2.0);const rx=S.camX+W+40;
+    if(groundAt(rx)){const r=rnd(13,20);g.rocks.push({x:rx,y:GROUND-r,r,vx:-rnd(150,240),vy:0,rot:0,hop:Math.random()<.35,seed:Math.random()});}
+  }
+  for(const rk of g.rocks){
+    rk.x+=rk.vx*dt;rk.rot+=rk.vx*dt/rk.r;
+    rk.vy+=900*dt;rk.y+=rk.vy*dt;
+    const gy=groundAt(rk.x);
+    if(gy!==null&&rk.y>=gy-rk.r&&rk.y<gy-rk.r+30){rk.y=gy-rk.r;rk.vy=rk.hop?-rnd(300,390):0;}
+    const cx=clamp(rk.x,p.x-11,p.x+11),cy=clamp(rk.y,p.y-62,p.y);
+    if(p.inv<=0&&Math.hypot(rk.x-cx,rk.y-cy)<rk.r){p.inv=1.3;p.kb=.35;p.vx=-240;p.vy=-300;p.on=false;sfx('hit');g.msg='ouch';g.msgT=.9;burst(rk.x,rk.y,8,'#aaa',120,.5,3);}
+  }
+  g.rocks=g.rocks.filter(r=>r.x>S.camX-120&&r.y<H+120);
+  if(g.msgT>0)g.msgT-=dt;
+  if(Math.hypot(p.x-BATTERY.x,(p.y-30)-BATTERY.y)<42){g.got=true;g.gotT=1.1;sfx('collect');burst(BATTERY.x,BATTERY.y,30,'#7dff9b',220,1,4);}
+}
+function drawPlat(g){
+  for(const pl of PLATS){const x=pl.x-S.camX;rr(x,pl.y,pl.w,16,6,'#a0a0a8','#6e6e76',2);rr(x+4,pl.y+2,pl.w-8,4,2,'#c4c4cb');}
+  for(const rk of g.rocks){
+    ctx.save();ctx.translate(rk.x-S.camX,rk.y);ctx.rotate(rk.rot);
+    ctx.fillStyle='#6d6d75';ctx.beginPath();for(let i=0;i<9;i++){const a=i/9*Math.PI*2,rr2=rk.r*(.85+.15*Math.sin(i*2.3+rk.seed*9));ctx.lineTo(Math.cos(a)*rr2,Math.sin(a)*rr2);}ctx.closePath();ctx.fill();
+    circle(-rk.r*.3,-rk.r*.2,rk.r*.22,'#5a5a61');circle(rk.r*.3,rk.r*.25,rk.r*.16,'#5a5a61');ctx.restore();
+  }
+  if(!g.got){
+    const by=BATTERY.y+Math.sin(time*3)*5,bx=BATTERY.x-S.camX;
+    ctx.globalAlpha=.3+.2*Math.sin(time*5);circle(bx,by,30,'#7dff9b');ctx.globalAlpha=1;
+    rr(bx-13,by-20,26,40,4,'#2e3440','#7dff9b',2);rr(bx-5,by-25,10,6,2,'#7dff9b');
+    rr(bx-9,by-4,18,20,2,'#4cd964');ctx.fillStyle='#fff';ctx.font='bold 16px sans-serif';ctx.textAlign='center';ctx.fillText('⚡',bx,by-6);
+  }
+  const p=g.p;
+  if(!(p.inv>0&&Math.floor(time*12)%2===0))drawAstro({x:p.x,y:p.y,s:.9,facing:p.face,walking:p.on&&Math.abs(p.vx)>1});
+  ctx.fillStyle='rgba(255,255,255,.75)';ctx.font='14px sans-serif';ctx.textAlign='left';ctx.fillText(t('platHint'),14,24);
+  const prog=clamp(p.x/BATTERY.x,0,1);rr(14,34,200,8,4,'rgba(255,255,255,.2)');rr(14,34,Math.max(8,200*prog),8,4,'#7dff9b');
+  if(g.msgT>0){ctx.globalAlpha=Math.min(1,g.msgT*2);ctx.fillStyle='#ffd34d';ctx.font='bold 34px sans-serif';ctx.textAlign='center';ctx.fillText(t(g.msg),p.x-S.camX,p.y-95);ctx.globalAlpha=1;}
+}
+addEventListener('keydown',e=>{
+  if(!game||game.type!=='plat')return;
+  if(['ArrowLeft','a','A'].includes(e.key))keys.l=true;
+  if(['ArrowRight','d','D'].includes(e.key))keys.r=true;
+  if([' ','ArrowUp','w','W'].includes(e.key)){if(!e.repeat)jumpQ=true;e.preventDefault();}
+});
+addEventListener('keyup',e=>{
+  if(['ArrowLeft','a','A'].includes(e.key))keys.l=false;
+  if(['ArrowRight','d','D'].includes(e.key))keys.r=false;
+});
+function bindHold(el,on,off){
+  el.addEventListener('pointerdown',e=>{e.preventDefault();el.setPointerCapture&&el.setPointerCapture(e.pointerId);el.classList.add('on');on();});
+  ['pointerup','pointercancel','pointerleave'].forEach(ev=>el.addEventListener(ev,()=>{el.classList.remove('on');off();}));
+}
+bindHold($('#cL'),()=>keys.l=true,()=>keys.l=false);
+bindHold($('#cR'),()=>keys.r=true,()=>keys.r=false);
+bindHold($('#cJ'),()=>jumpQ=true,()=>{});
+
+/* =========================================================
+   MINIGAME 2: MARS SANDSTORMS
+   ========================================================= */
+function sandstorm(spirit,oppy){
+  return new Promise(res=>{game={type:'storm',energy:0,storms:[],spawn:.3,res,spirit,oppy,done:false,doneT:0,giant:null};windStart(.1);});
+}
+function updateStorm(g,dt){
+  if(g.done){g.doneT-=dt;if(g.doneT<=0){const r=g.res;game=null;r();}return;}
+  if(!g.giant&&g.energy<100){
+    g.spawn-=dt;
+    if(g.spawn<=0){
+      g.spawn=rnd(.42,.8);const left=Math.random()<.5;
+      g.storms.push({x:left?-60:W+60,y:rnd(130,360),vx:(left?1:-1)*rnd(240,370),r:rnd(32,44),ph:Math.random()*6,wob:rnd(.8,1.6)});
+    }
+    if(g.energy>=85){
+      g.energy=85;g.giant={x:W+220,y:270,r:160,hp:16,max:16,ph:0};
+      sfx('gust');windStart(.4);
+    }else g.energy=Math.max(0,g.energy-2*dt);
+  }else if(g.giant){
+    const G=g.giant;G.ph+=dt*5;G.x+=(480-G.x)*Math.min(1,dt*1.4);G.y=262+Math.sin(time*1.4)*28;
+    if(Math.random()<dt*1.5)burst(G.x+rnd(-G.r,G.r),G.y+rnd(-G.r,G.r)*.6,4,'#d9925e',120,.6,5);
+  }
+  for(const s of g.storms){s.x+=s.vx*dt;s.ph+=dt*9;s.y+=Math.sin(time*s.wob*3)*30*dt;}
+  g.storms=g.storms.filter(s=>s.x>-120&&s.x<W+120);
+  const e=g.energy/100;
+  g.spirit.sink=1-e;g.spirit.dust=.35*(1-e);g.oppy.dust=1-e;
+  if(g.energy>=100){g.done=true;g.doneT=1.4;g.storms.forEach(s=>burst(s.x,s.y,12,'#e3a06b',180,.7,5));g.storms=[];sfx('win');windStop();
+    g.spirit.sink=0;g.spirit.dust=0;g.oppy.dust=0;g.spirit.sleep=false;g.oppy.sleep=false;
+    burst(g.spirit.x,GROUND-60,25,'#ffe27a',200,1,4);burst(g.oppy.x,GROUND-60,25,'#ffe27a',200,1,4);}
+}
+function drawDustDevil(x,y,r,ph,dark){
+  ctx.save();ctx.translate(x,y);
+  for(let i=0;i<6;i++){
+    const yy=-r+i*r*.38,rx=r*(1-i*.12),off=Math.sin(ph+i)*r*.18;
+    ctx.globalAlpha=dark?.7:.55;ellipse(off,yy,rx,r*.2,i%2?(dark?'#b8693c':'#d9925e'):(dark?'#cf8a58':'#e8b07c'));
+  }
+  ctx.globalAlpha=.9;ctx.strokeStyle=dark?'#8a4a26':'#b8693c';ctx.lineWidth=dark?5:2.5;
+  for(let i=0;i<3;i++){ctx.beginPath();ctx.arc(0,-r*.2+i*r*.35,r*(.7-i*.18),ph+i,ph+i+3.6);ctx.stroke();}
+  ctx.restore();ctx.globalAlpha=1;
+}
+function drawStorm(g){
+  if(g.giant){ctx.fillStyle='rgba(190,110,60,.18)';ctx.fillRect(0,0,W,H);}
+  for(const s of g.storms)drawDustDevil(s.x,s.y,s.r,s.ph,false);
+  if(g.giant){
+    const G=g.giant;drawDustDevil(G.x,G.y,G.r,G.ph,true);
+    if(Math.floor(time*3)%2===0){ctx.font='bold 26px sans-serif';const tw=ctx.measureText(t('giant')).width;
+      rr(W/2-tw/2-18,58,tw+36,42,14,'rgba(120,40,10,.85)');ctx.fillStyle='#ffe2b0';ctx.textAlign='center';ctx.fillText(t('giant'),W/2,88);}
+    rr(G.x-60,G.y+G.r*.75,120,10,5,'rgba(0,0,0,.35)');rr(G.x-60,G.y+G.r*.75,120*G.hp/G.max,10,5,'#ffd34d');
+  }
+  const bw=420,bx=(W-bw)/2,by=16;
+  rr(bx-4,by-4,bw+8,34,12,'rgba(20,10,5,.6)');
+  rr(bx,by,bw,26,10,'rgba(255,255,255,.15)');
+  const gr=ctx.createLinearGradient(bx,0,bx+bw,0);gr.addColorStop(0,'#ffd34d');gr.addColorStop(1,'#7dff9b');
+  rr(bx,by,Math.max(20,bw*g.energy/100),26,10,gr);
+  ctx.fillStyle='#1b1530';ctx.font='bold 15px sans-serif';ctx.textAlign='center';ctx.fillText('⚡ '+t('energy')+' '+Math.floor(g.energy)+'%',W/2,by+18);
+}
+cv.addEventListener('pointerdown',e=>{
+  if(!game||game.type!=='storm'||game.done)return;
+  const r=cv.getBoundingClientRect(),x=(e.clientX-r.left)*W/r.width,y=(e.clientY-r.top)*H/r.height;
+  const G=game.giant;
+  if(G){
+    if(Math.hypot(x-G.x,y-G.y)<G.r*1.15){
+      G.hp--;sfx('poof');burst(x,y,14,'#c98a5a',240,.7,6);
+      if(G.hp%3===0){S.blur=1;sfx('gust');}
+      G.r=80+80*G.hp/G.max;
+      if(G.hp<=0){game.giant=null;game.energy=100;burst(G.x,G.y,70,'#e3a06b',340,1.2,7);}
+    }
+    return;
+  }
+  for(let i=game.storms.length-1;i>=0;i--){const s=game.storms[i];
+    if(Math.hypot(x-s.x,y-s.y)<s.r*1.35){game.storms.splice(i,1);game.energy=Math.min(85,game.energy+5);sfx('poof');burst(s.x,s.y,16,'#e3a06b',200,.7,5);break;}}
+});
+
+/* =========================================================
+   STORY SEQUENCES
+   ========================================================= */
+const done={moon:false,mars:false};
+let astro,rocket;
+async function fadeTo(fn){await tween(S,{fade:1},.6);fn();await tween(S,{fade:0},.6);}
+
+async function introLaunch(){
+  S.bg='earth';S.alt=0;S.camX=0;S.planet=null;
+  astro={type:'astro',x:180,y:GROUND,s:1,facing:1};
+  rocket={type:'rocket',x:560,y:GROUND-2,s:1};
+  S.actors=[rocket,astro];
+  await tween(S,{fade:0},.8);
+  astro.walking=true;await tween(astro,{x:545},1.8,ease.lin);astro.walking=false;
+  S.actors=[rocket];rocket.passenger=true;rocket.wave=true;sfx('click');
+  await wait(.5);
+  sfx('rumble');rocket.flame=.6;S.shake=5;await wait(.8);rocket.flame=1;
+  tween(S,{alt:1},3.4,ease.in);await tween(rocket,{y:-260},3.4,ease.in);S.shake=0;
+  S.bg='space';S.speed=.2;rocket.rot=Math.PI/2;rocket.x=-180;rocket.y=300;rocket.s=.75;rocket.wave=false;
+  tween(S,{speed:1},1.4);await tween(rocket,{x:400},1.8,ease.out);
+  await say('nMission','intro1');await say('nMission','intro2');
+}
+async function travelTo(kind){
+  S.planet={kind,x:1250,y:270,r:60};
+  tween(rocket,{x:300},2.6);await tween(S.planet,{x:760,r:230},2.6,ease.inOut);
+  tween(S,{speed:.1},1);await tween(rocket,{x:520,s:.4},1.2,ease.in);
+}
+async function landOn(kind){
+  await fadeTo(()=>{
+    S.bg=kind;S.camX=0;S.planet=null;
+    rocket={type:'rocket',id:'rocket',x:150,y:-240,s:.9,flame:1,passenger:true};
+    astro={type:'astro',x:150,y:GROUND,s:1,facing:1};
+    S.actors=[rocket];
+  });
+  await tween(rocket,{y:GROUND},2.3,ease.out);
+  rocket.flame=0;rocket.passenger=false;sfx('thud');
+  burst(150,GROUND,30,kind==='moon'?'#b9b9c0':'#d58a5c',180,1,5);
+}
+async function rocketToOrbit(){
+  S.radio=true;sfx('radio');
+  await new Promise(res=>openDlg('nRadio','radio1',[
+    {k:'learnMore',cls:'ghost',keep:true,fn:showApollo},
+    {k:'next',next:true,fn:res}]));
+  S.radio=false;
+  rocket.passenger=false;sfx('rumble');rocket.flame=1;S.shake=2;
+  burst(rocket.x,GROUND,24,S.bg==='moon'?'#b9b9c0':'#d58a5c',160,1,5);
+  await tween(rocket,{y:-320},2.8,ease.in);S.shake=0;rocket.flame=0;
+  S.actors=S.actors.filter(a=>a!==rocket);S.orbitDot=true;
+}
+async function departFrom(wx,next){
+  await ask('nMission','callHint',[{id:'call',k:'callRocket',cls:'blue'}]);
+  S.orbitDot=false;S.radio=false;
+  Object.assign(rocket,{x:wx,y:-280,s:.9,rot:0,flame:1,passenger:false,wave:false,hidden:false});
+  S.actors=S.actors.filter(a=>a.type!=='rocket');S.actors.push(rocket);
+  sfx('radio');
+  const talk=say('nRadio','radio2');
+  const camT=Math.max(S.camX,wx-700);
+  tween(S,{camX:camT},2.2);
+  await tween(rocket,{y:GROUND},2.6,ease.out);rocket.flame=0;sfx('thud');burst(wx,GROUND,20,S.bg==='moon'?'#b9b9c0':'#d58a5c',150,.9,4);
+  await talk;
+  astro.facing=1;astro.walking=true;await tween(astro,{x:wx},Math.abs(wx-astro.x)/170,ease.lin);astro.walking=false;
+  S.actors=S.actors.filter(a=>a!==astro);rocket.passenger=true;rocket.wave=true;
+  await wait(.4);sfx('rumble');rocket.flame=1;S.shake=3;
+  await tween(rocket,{y:-300},3.2,ease.in);S.shake=0;
+  if(next){await issDock(next);return;}
+  await fadeTo(()=>{S.bg='space';S.speed=1;S.camX=0;S.actors=[rocket];rocket.rot=Math.PI/2;rocket.x=250;rocket.y=300;rocket.s=.75;rocket.wave=false;S.planet={kind:'earth',x:1250,y:270,r:60};});
+  tween(rocket,{x:360},2.4);await tween(S.planet,{x:760,r:200},2.4);
+  S.speed=.3;
+}
+async function issDock(next){
+  const iss={type:'iss',id:'iss',x:420,y:330,s:.85,seed:4};
+  await fadeTo(()=>{
+    S.bg='space';S.camX=0;S.speed=.6;S.orbitDot=false;S.planet={kind:'earth',x:760,y:270,r:200};
+    S.actors=[iss,rocket];rocket.rot=Math.PI/2;rocket.x=-200;rocket.y=470;rocket.s=.6;rocket.wave=false;rocket.passenger=true;rocket.flame=1;
+  });
+  tween(S,{speed:.06},2.5);
+  const portX=iss.x-84*iss.s,portY=iss.y+34*iss.s;
+  tween(rocket,{flame:.35},2);
+  await tween(rocket,{x:portX-156*.6,y:portY,s:.6},3.4,ease.inOut);
+  rocket.flame=0;sfx('dock');burst(portX,portY,14,'#ffffff',90,.6,3);
+  await wait(.4);
+  await say('nISS','issDock');
+  await ask('nMission',next==='moon'?'newMoon':'newMars',[{id:'go',k:'launch'}]);
+  await tween(rocket,{x:rocket.x-50},.9,ease.out);
+  rocket.flame=1;sfx('rumble');tween(S,{speed:1},1.6);
+  await tween(rocket,{y:rocket.y+170,x:rocket.x+80},1.6,ease.in);
+  await fadeTo(()=>{S.actors=[rocket];S.planet=null;rocket.x=220;rocket.y=300;rocket.s=.75;rocket.flame=1;S.speed=1;});
+}
+
+async function moonPhase(next){
+  await travelTo('moon');await landOn('moon');
+  const lrv={type:'lrv',id:'lrv',x:640,y:GROUND,s:1.15,tired:true,seed:1};
+  const eagle={type:'eagle',id:'eagle',x:2600,y:GROUND,s:1.1,seed:2};
+  S.actors=[eagle,rocket,lrv,astro];
+  astro.walking=true;await tween(astro,{x:470},1.6,ease.lin);astro.walking=false;
+  await rocketToOrbit();
+  await say('nLRV','lrv1');await say('nLRV','lrv2');await say('nLRV','lrv3');await say('nLRV','lrv4');
+  await ask('nMission','moonGame',[{id:'go',k:'start'}]);
+  await tween(S,{fade:1},.5);
+  const pl=platformer();await tween(S,{fade:0},.5);await pl;
+  await fadeTo(()=>{S.bg='moon';S.camX=0;S.actors=[eagle,lrv,astro];astro.x=480;astro.facing=1;});
+  sfx('power');lrv.tired=false;lrv.lit=true;burst(lrv.x+20,GROUND-60,30,'#7dff9b',200,1,4);
+  lrv.bob=-6;await tween(lrv,{bob:0},.4,ease.out);
+  await say('nLRV','lrv5');
+  astro.walking=true;await tween(astro,{x:620},.9,ease.lin);astro.walking=false;
+  S.actors=S.actors.filter(a=>a!==astro);lrv.rider=true;lrv.riderWave=true;
+  let lx=lrv.x;const roll=setInterval(()=>{lrv.wroll=(lrv.wroll||0)+(lrv.x-lx)/18;lx=lrv.x;},16);
+  await Promise.all([tween(lrv,{x:1700},7.5),tween(S,{camX:1180},7.5)]);clearInterval(roll);
+  lrv.riderWave=false;lrv.lit=false;lrv.tired=true;
+  await say('nLRV','lrv6');
+  lrv.rider=false;astro.x=1560;astro.facing=1;S.actors.push(astro);
+  await photo('capLRV');
+  await say('nLRV','lrv7');lrv.sleep=true;
+  astro.facing=-1;astro.wave=true;await wait(1.1);astro.wave=false;astro.facing=1;
+  astro.walking=true;await Promise.all([tween(astro,{x:2420},5,ease.lin),tween(S,{camX:2080},5)]);astro.walking=false;
+  await say('nEagle','eagle1');await say('nEagle','eagle2');await say('nEagle','eagle3');await say('nEagle','eagle4');
+  await photo('capEagle');
+  await say('nEagle','eagle5');
+  await departFrom(2880,next);
+}
+
+async function marsPhase(next){
+  await travelTo('mars');await landOn('mars');
+  const soj={type:'soj',id:'soj',x:480,y:GROUND,s:1.6,seed:1};
+  const spirit={type:'mer',id:'spirit',x:690,y:GROUND+4,s:.82,sink:1,dust:.35,sleep:true,accent:'#5fb4ff',seed:2,alpha:0};
+  const oppy={type:'mer',id:'oppy',x:860,y:GROUND,s:.82,dust:1,sleep:true,accent:'#ff9f43',seed:3,alpha:0};
+  S.actors=[rocket,spirit,oppy,soj,astro];
+  astro.walking=true;await tween(astro,{x:330},1.4,ease.lin);astro.walking=false;
+  await rocketToOrbit();
+  await say('nSoj','soj1');
+  S.banner='q';
+  while(true){
+    const c=await ask('nSoj','soj2',[{id:'yes',k:'yes',cls:'blue'},{id:'no',k:'no',cls:'red'}]);
+    if(c==='yes')break;
+    sfx('wrong');await say('nSoj','wrong');
+  }
+  S.banner=null;sfx('right');burst(soj.x,GROUND-60,25,'#ffd34d',200,1,4);
+  await say('nSoj','soj3');
+  tween(spirit,{alpha:1},1.4);tween(oppy,{alpha:1},1.4);
+  await say('nSoj','soj4');await say('nSoj','soj5');
+  await ask('nMission','marsGame',[{id:'go',k:'start'}]);
+  await sandstorm(spirit,oppy);
+  await say('nSoj','soj6');
+  spirit.bob=-8;await tween(spirit,{bob:0},.4,ease.out);
+  await say('nOppy','oppy1');await say('nSpirit','spirit1');await say('nOppy','oppy2');
+  await say('nOppy','oppy3');await say('nOppy','oppy4');await say('nSpirit','spirit2');
+  await photo('capMars');
+  await departFrom(1080,next);
+}
+
+async function ending(){
+  await fadeTo(()=>{
+    S.bg='table';S.actors=[];S.camX=0;S.planet=null;
+    const pos=[[230,190,-.12],[480,170,.05],[730,195,-.06]];
+    S.polaroids=photos.map((p,i)=>({img:p.img,cap:p.cap,x:pos[i%3][0],y:pos[i%3][1],rot:pos[i%3][2],s:1.6,a:0}));
+  });
+  for(const pz of S.polaroids){sfx('click');await tween(pz,{s:1,a:1},.55,ease.out);}
+  $('#albumBtn').style.display='block';
+  sfx('win');dlgEl.classList.add('bottom');
+  await say('nMission','end1');await say('nMission','end2');await say('nMission','end3');
+  while(true){
+    const c=await ask(null,'thanks',[{id:'album',k:'openAlbum',cls:'blue'},{id:'again',k:'again'}]);
+    if(c==='album'){await openAlbum();continue;}
+    break;
+  }
+  $('#albumBtn').style.display='none';dlgEl.classList.remove('bottom');
+  await fadeTo(()=>{S.bg='title';S.polaroids=[];$('#title').style.display='flex';$('#toggles').style.display='none';});
+}
+function drawPolaroids(){
+  for(const pz of S.polaroids){
+    ctx.save();ctx.globalAlpha=pz.a;ctx.translate(pz.x,pz.y);ctx.rotate(pz.rot);ctx.scale(pz.s,pz.s);
+    ctx.shadowColor='rgba(0,0,0,.5)';ctx.shadowBlur=18;ctx.shadowOffsetY=8;
+    ctx.fillStyle='#fbfaf5';ctx.fillRect(-122,-92,244,196);ctx.shadowColor='transparent';
+    if(pz.img.complete)ctx.drawImage(pz.img,-112,-82,224,126);
+    ctx.fillStyle='#2b2b3a';ctx.textAlign='center';
+    let fs=17;ctx.font=`${fs}px "Comic Sans MS","Marker Felt","Chalkboard SE",cursive`;
+    while(ctx.measureText(t(pz.cap)).width>220&&fs>10){fs--;ctx.font=`${fs}px "Comic Sans MS","Marker Felt","Chalkboard SE",cursive`;}
+    ctx.fillText(t(pz.cap),0,76);
+    ctx.fillStyle='rgba(255,240,170,.75)';ctx.save();ctx.rotate(-.05);ctx.fillRect(-28,-102,56,18);ctx.restore();
+    ctx.restore();
+  }
+  ctx.globalAlpha=1;
+}
+
+async function run(){
+  photos=[];S.polaroids=[];
+  await introLaunch();
+  const first=await ask('nMission','choose',[{id:'moon',k:'goMoon'},{id:'mars',k:'goMars',cls:'red'}]);
+  const second=first==='moon'?'mars':'moon';
+  if(first==='moon')await moonPhase(second);else await marsPhase(second);
+  if(second==='moon')await moonPhase();else await marsPhase();
+  await ending();
+}
+
+/* =========================================================
+   MAIN LOOP
+   ========================================================= */
+let last=performance.now();
+function frame(now){
+  const dt=Math.min(.05,(now-last)/1000)*(window.__speed||1);last=now;time+=dt;
+  updateTweens(dt);
+  if(game){if(game.type==='plat')updatePlat(game,dt);else updateStorm(game,dt);}
+  updateParts(dt);updateDlg(dt);
+  S.flash=Math.max(0,S.flash-dt*2.2);
+  if(S.blur>0||cv.style.filter){S.blur=Math.max(0,S.blur-dt*1.6);cv.style.filter=S.blur>0.02?`blur(${(S.blur*7).toFixed(1)}px) sepia(${(S.blur*.7).toFixed(2)})`:'';}
+  ctx.save();
+  if(S.shake)ctx.translate(rnd(-S.shake,S.shake),rnd(-S.shake,S.shake));
+  if(S.cam.z!==1||S.cam.x!==W/2||S.cam.y!==H/2){ctx.translate(W/2,H/2);ctx.scale(S.cam.z,S.cam.z);ctx.translate(-S.cam.x,-S.cam.y);}
+  drawBg();
+  if(S.orbitDot&&(S.bg==='moon'||S.bg==='mars')){
+    const per=11,ph=(time%per)/per,ox=-60+ph*(W+120),oy=250-Math.sin(ph*Math.PI)*40;
+    const on=Math.floor(time*3)%2===0;
+    ctx.globalAlpha=.35;circle(ox,oy,9,'#fff7c2');ctx.globalAlpha=1;circle(ox,oy,on?3.2:2.2,'#fffbe0');
+  }
+  if(game&&game.type==='plat'){drawPlat(game);}
+  else{
+    for(const a of S.actors){
+      if(a.alpha===0||a.hidden)continue;
+      ctx.globalAlpha=a.alpha===undefined?1:a.alpha;
+      if(a.id&&a.id===S.speaker){const b=a.bob;a.bob=(b||0)-Math.abs(Math.sin(time*9))*3;DRAW[a.type](a);a.bob=b;}
+      else DRAW[a.type](a);
+      ctx.globalAlpha=1;
+    }
+    if(game&&game.type==='storm')drawStorm(game);
+  }
+  drawParts();
+  if(S.radio&&S.actors.includes(rocket)){
+    const tx=rocket.x-S.camX+22*rocket.s,ty=rocket.y-110*rocket.s;
+    ctx.strokeStyle='rgba(255,230,120,.9)';ctx.lineWidth=3;
+    for(let i=0;i<3;i++){const r=((time*40+i*16)%48)+8;ctx.globalAlpha=1-r/56;ctx.beginPath();ctx.arc(tx,ty,r,-.9,.9);ctx.stroke();}
+    ctx.globalAlpha=1;
+  }
+  if(S.bg==='table')drawPolaroids();
+  if(S.banner){
+    ctx.font='bold 30px sans-serif';const tw=ctx.measureText(t(S.banner)).width;
+    rr(W/2-tw/2-26,222,tw+52,64,18,'rgba(255,255,255,.93)','#ffd34d',4);
+    ctx.fillStyle='#1b1530';ctx.textAlign='center';ctx.fillText(t(S.banner),W/2,265);
+  }
+  ctx.restore();
+  if(captureCb){
+    const off=document.createElement('canvas');off.width=480;off.height=270;off.getContext('2d').drawImage(cv,0,0,480,270);
+    const img=new Image();img.src=off.toDataURL('image/jpeg',.85);const cb=captureCb;captureCb=null;cb(img);
+  }
+  if(S.viewfinder){
+    ctx.strokeStyle='rgba(255,255,255,.9)';ctx.lineWidth=4;const m=40,L=46;
+    [[m,m,1,1],[W-m,m,-1,1],[m,H-m,1,-1],[W-m,H-m,-1,-1]].forEach(([x,y,sx,sy])=>{ctx.beginPath();ctx.moveTo(x,y+sy*L);ctx.lineTo(x,y);ctx.lineTo(x+sx*L,y);ctx.stroke();});
+    if(Math.floor(time*2)%2===0)circle(m+22,m+22,7,'#ff4d4d');
+    ctx.fillStyle='rgba(255,255,255,.95)';ctx.font='bold 20px sans-serif';ctx.textAlign='right';ctx.fillText('🔍 '+S.cam.z.toFixed(2).replace(/0$/,'')+'×',W-56,H-52);
+    ctx.textAlign='left';ctx.font='15px sans-serif';ctx.fillText('✋ ↔ ↕',56,H-52);
+    ctx.strokeStyle='rgba(255,255,255,.5)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(W/2-16,H/2);ctx.lineTo(W/2+16,H/2);ctx.moveTo(W/2,H/2-16);ctx.lineTo(W/2,H/2+16);ctx.stroke();
+  }
+  if(S.flash>0){ctx.fillStyle=`rgba(255,255,255,${S.flash})`;ctx.fillRect(0,0,W,H);}
+  if(S.fade>0){ctx.fillStyle=`rgba(0,0,0,${S.fade})`;ctx.fillRect(0,0,W,H);}
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+/* =========================================================
+   ALBUM: NASA HARDWARE LEFT BEHIND
+   Texts written from the NASA pages listed in each entry (src).
+   ========================================================= */
+function tr(a){ctx.translate(a.x,a.y);ctx.rotate(a.rot||0);ctx.scale(a.s||1,a.s||1);}
+function line(pts,color,w){ctx.strokeStyle=color;ctx.lineWidth=w;ctx.lineCap='round';ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.stroke();}
+function poly(pts,fill){ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.closePath();ctx.fillStyle=fill;ctx.fill();}
+function solar(x,y,w,h){rr(x,y,w,h,2,'#1c2950');ctx.strokeStyle='#3e5ca3';ctx.lineWidth=1;for(let i=x+8;i<x+w;i+=9){ctx.beginPath();ctx.moveTo(i,y);ctx.lineTo(i,y+h);ctx.stroke();}}
+function gold(x0,y0,x1,y1){const g=ctx.createLinearGradient(x0,y0,x1,y1);g.addColorStop(0,'#ffe08a');g.addColorStop(.45,'#d9a43a');g.addColorStop(1,'#9b6a17');return g;}
+
+function drawALSEP(a){
+  ctx.save();tr(a);
+  ctx.strokeStyle='#3c3c44';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(-30,-6);ctx.bezierCurveTo(-60,4,-80,-2,-104,-8);ctx.moveTo(30,-6);ctx.bezierCurveTo(55,6,75,2,92,-4);ctx.moveTo(30,-8);ctx.bezierCurveTo(90,8,130,6,168,-2);ctx.stroke();
+  for(let i=0;i<6;i++)rr(-130,-44+i*7,40,3,1,'#5d616a');
+  rr(-120,-48,20,48,4,'#4a4d55');rr(-114,-58,8,10,2,'#777');
+  rr(-32,-38,64,38,3,'#dcdfe5','#8a8d96');rr(-32,-38,64,9,2,gold(-32,-38,32,-29));
+  line([[-28,-38],[-28,-72]],'#9aa0aa',2.5);line([[28,-38],[28,-72]],'#9aa0aa',2.5);
+  rr(-44,-77,88,6,2,'#eef0f4','#9aa0aa');
+  line([[18,-77],[30,-108]],'#9aa0aa',2);rr(26,-124,9,18,2,'#d6d8dd','#999');
+  eyes(0,-17,5,11,{...a,lidColor:'#dcdfe5'},1);
+  ellipse(100,-2,42,7,'#cfd2d8');ctx.beginPath();ctx.arc(100,-4,15,Math.PI,0);ctx.fillStyle='#eceef2';ctx.fill();
+  line([[170,0],[170,-44]],'#9aa0aa',2.5);line([[146,-44],[194,-44]],'#9aa0aa',2.5);line([[170,-44],[170,-70]],'#9aa0aa',2);
+  circle(146,-44,4,'#ddd');circle(194,-44,4,'#ddd');circle(170,-72,4,'#ddd');
+  ctx.restore();
+}
+function drawSurveyor(a){
+  ctx.save();tr(a);
+  line([[6,-50],[22,-8]],'#9aa0aa',3.5);ellipse(22,-6,10,3.5,'#9aa0aa');
+  line([[-20,-50],[-74,-4]],'#b0b4bc',4);line([[20,-50],[74,-4]],'#b0b4bc',4);
+  ellipse(-76,-3,15,5,'#b0b4bc');ellipse(76,-3,15,5,'#b0b4bc');
+  ctx.strokeStyle='#cfd3da';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-32,-50);ctx.lineTo(32,-50);ctx.lineTo(0,-98);ctx.closePath();ctx.stroke();
+  line([[0,-98],[0,-160]],'#cfd3da',3);
+  ctx.save();ctx.translate(0,-164);ctx.rotate(-.3);solar(-36,-4,72,8);ctx.restore();
+  ctx.save();ctx.translate(0,-150);ctx.rotate(.35);rr(4,-6,40,7,2,'#e6e8ec','#999');ctx.restore();
+  rr(-34,-66,30,20,3,'#eef0f4','#999');rr(6,-64,28,18,3,'#eef0f4','#999');ellipse(0,-46,12,4,'#555');
+  rr(-52,-106,15,30,5,'#d6d8dd','#999');rr(-55,-112,20,9,3,'#bfc3ca');
+  eyes(-19,-56,3.6,6.4,{...a,lidColor:'#eef0f4'},1);
+  line([[22,-56],[84,-34],[98,-10]],'#9aa0aa',3);rr(92,-14,16,9,2,'#6e7179');
+  ctx.restore();
+}
+function drawPathfinder(a){
+  ctx.save();tr(a);
+  [[-78,-8,44,12],[78,-8,44,12],[0,-4,60,9]].forEach(e=>ellipse(e[0],e[1],e[2],e[3],'#e6dfd0'));
+  ellipse(-62,-12,20,8,'#f1ebdf');ellipse(66,-12,22,8,'#f1ebdf');
+  poly([[-36,-16],[-142,-6],[-142,2],[-36,-4]],'#1c2950');poly([[36,-16],[142,-6],[142,2],[36,-4]],'#1c2950');
+  line([[34,-8],[86,0]],'#8a8d96',4);
+  rr(-38,-26,76,22,3,'#c7c9ce','#888');
+  line([[-22,-26],[-22,-62]],'#9aa0aa',2);circle(-22,-64,4,'#ddd');
+  line([[10,-26],[10,-96]],'#9aa0aa',3);rr(-8,-112,36,18,4,'#e2e3e8','#888');
+  eyes(10,-103,4.4,8,{...a,lidColor:'#e2e3e8'},1);
+  ctx.restore();
+}
+function drawViking(a){
+  ctx.save();tr(a);
+  line([[0,-48],[12,-6]],'#9aa0aa',3.5);ellipse(12,-4,10,3.5,'#9aa0aa');
+  line([[-40,-50],[-76,-4]],'#b0b4bc',4);line([[40,-50],[76,-4]],'#b0b4bc',4);ellipse(-78,-3,15,5,'#b0b4bc');ellipse(78,-3,15,5,'#b0b4bc');
+  const g=ctx.createLinearGradient(0,-82,0,-46);g.addColorStop(0,'#eceae3');g.addColorStop(1,'#b9b6ad');
+  poly([[-50,-82],[50,-82],[58,-64],[50,-46],[-50,-46],[-58,-64]],g);
+  for(const x of [-50,24]){rr(x,-100,26,18,2,'#4a4d55');for(let i=0;i<4;i++)rr(x+3+i*6,-102,2,22,1,'#5d616a');}
+  line([[-37,-100],[-37,-150]],'#9aa0aa',3);
+  ctx.save();ctx.translate(-37,-156);ctx.rotate(-.5);ellipse(0,0,38,10,'#f2f2f4');ellipse(0,1,30,6,'#d6d8dd');line([[0,0],[0,-12]],'#999',2);ctx.restore();
+  rr(0,-120,10,38,3,'#cfd1d6','#999');rr(18,-120,10,38,3,'#cfd1d6','#999');
+  circle(5,-124,8,'#e2e3e8');circle(23,-124,8,'#e2e3e8');
+  eyes(14,-124,5,9,{...a,lidColor:'#e2e3e8'},1);
+  line([[50,-62],[104,-40],[118,-8]],'#9aa0aa',3);rr(112,-12,14,8,2,'#6e7179');
+  ctx.restore();
+}
+function drawInSight(a){
+  ctx.save();tr(a);
+  ellipse(150,-1,34,6,'#a8a8ae');ctx.beginPath();ctx.arc(150,-4,22,Math.PI,0);ctx.fillStyle=gold(128,-26,172,0);ctx.fill();
+  rr(98,-18,18,18,2,'#dcdcdc','#999');line([[107,-18],[104,-30],[60,-40]],'#555',1.2);
+  line([[-26,-42],[-40,-2]],'#9aa0aa',3.5);line([[26,-42],[40,-2]],'#9aa0aa',3.5);line([[0,-42],[0,-2]],'#9aa0aa',3.5);
+  [-40,0,40].forEach(x=>ellipse(x,-2,10,3.5,'#9aa0aa'));
+  for(const sx of [-1,1]){
+    line([[sx*40,-60],[sx*48,-60]],'#888',3);
+    ellipse(sx*98,-60,54,9,'#2e2724');ctx.strokeStyle='#b5652f';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(sx*98,-60,54,9,0,0,Math.PI*2);ctx.stroke();
+    ctx.strokeStyle='#5a4031';ctx.lineWidth=1;for(let i=-40;i<=40;i+=10){ctx.beginPath();ctx.moveTo(sx*98+i,-66);ctx.lineTo(sx*98+i,-54);ctx.stroke();}
+    ellipse(sx*98,-61,52,7,'rgba(196,128,78,.35)');
+  }
+  rr(-42,-56,84,14,3,gold(-42,-56,42,-42));rr(-42,-64,84,9,3,'#e8e8ec','#999');
+  line([[28,-64],[58,-104],[112,-72]],'#9aa0aa',3);circle(112,-72,4,'#777');
+  eyes(0,-49,4.4,10,{...a,lidColor:'#d9a43a'},1);
+  ctx.restore();
+}
+function drawIngenuity(a){
+  ctx.save();tr(a);
+  for(const s of [-1,1]){line([[s*7,-28],[s*20,-2]],'#9aa0aa',2);line([[s*12,-28],[s*36,0]],'#b8bcc4',2.4);ellipse(s*36,0,4,1.6,'#b8bcc4');}
+  rr(-17,-48,34,22,4,'#c9ccd3','#8a8d96');rr(-17,-38,34,6,1,'#d9a43a');
+  eyes(0,-43,3.4,7,{...a,lidColor:'#c9ccd3'},1);
+  line([[0,-48],[0,-96]],'#9da2ab',3);
+  ellipse(0,-68,74,2.6,'#2b2d33');ellipse(0,-79,74,2.6,'#2b2d33');circle(0,-68,4,'#555');circle(0,-79,4,'#555');
+  solar(-17,-104,34,7);
+  ctx.restore();
+}
+function drawDawn(a){
+  ctx.save();tr(a);
+  line([[-300,0],[300,0]],'#9aa0aa',3);
+  solar(-330,-15,288,30);solar(42,-15,288,30);
+  ellipse(0,-40,40,10,'#eef0f4');ellipse(0,-39,32,6,'#cfd3da');
+  rr(-36,-36,72,72,6,gold(-36,-36,36,36));
+  ctx.strokeStyle='rgba(255,245,200,.4)';ctx.lineWidth=1;for(let i=0;i<8;i++){ctx.beginPath();ctx.moveTo(-30+i*8,-30);ctx.lineTo(-26+i*7,30);ctx.stroke();}
+  rr(-16,36,32,10,3,'#55575e');
+  eyes(0,-4,7,15,{...a,lidColor:'#d9a43a'},1);
+  ctx.restore();
+}
+function drawNEAR(a){
+  ctx.save();tr(a);
+  solar(-150,-48,104,28);solar(46,-48,104,28);
+  line([[0,-44],[0,-56]],'#9aa0aa',3);ellipse(0,-60,52,12,'#eef0f4');ellipse(0,-59,42,7,'#cfd3da');line([[0,-60],[0,-74]],'#999',2);
+  poly([[-26,-44],[26,-44],[44,-26],[44,26],[26,44],[-26,44],[-44,26],[-44,-26]],gold(-44,-44,44,44));
+  line([[0,44],[0,62]],'#9aa0aa',2);
+  eyes(0,0,7,15,{...a,lidColor:'#d9a43a'},1);
+  ctx.restore();
+}
+function drawPioneer(a){
+  ctx.save();tr(a);
+  line([[10,10],[240,-140]],'#c4c7ce',2);circle(240,-140,6,'#ddd');
+  line([[0,20],[-170,80]],'#9aa0aa',3);line([[0,20],[170,80]],'#9aa0aa',3);
+  for(const s of [-1,1]){ctx.save();ctx.translate(s*170,80);ctx.rotate(s*.34);rr(-22,-9,44,18,4,'#4a4d55');for(let i=-16;i<18;i+=7)rr(i,-13,3,26,1,'#5d616a');ctx.restore();}
+  poly([[-26,58],[26,58],[38,80],[26,100],[-26,100],[-38,80]],'#c9ccd3');
+  rr(-16,84,32,13,2,gold(-16,84,16,97));
+  const g=ctx.createRadialGradient(-20,-20,10,0,0,82);g.addColorStop(0,'#ffffff');g.addColorStop(1,'#c9cdd6');
+  circle(0,0,80,g);ctx.strokeStyle='rgba(120,130,150,.35)';ctx.lineWidth=1.5;[60,40,20].forEach(r=>{ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.stroke();});
+  eyes(0,4,9,22,{...a,lidColor:'#e7e9ee'},1);
+  ctx.restore();
+}
+function drawKepler(a){
+  ctx.save();tr(a);
+  poly([[40,-60],[110,-90],[110,90],[40,110]],'#1c2950');ctx.strokeStyle='#3e5ca3';ctx.lineWidth=1;for(let y=-50;y<100;y+=14){ctx.beginPath();ctx.moveTo(40,y+(y<0?0:0));ctx.lineTo(110,y-20);ctx.stroke();}
+  rr(-50,100,100,30,4,gold(-50,100,50,130));
+  const g=ctx.createLinearGradient(-42,0,42,0);g.addColorStop(0,'#b5bac4');g.addColorStop(.4,'#f4f5f8');g.addColorStop(1,'#a3a8b2');
+  rr(-42,-100,84,202,10,g);
+  poly([[-42,-96],[-42,-122],[42,-150],[42,-96]],'#d9dce2');
+  ellipse(0,-100,38,8,'#14161c');
+  eyes(0,-10,8,17,{...a,lidColor:'#e9eaee'},1);
+  ctx.restore();
+}
+
+/* Backgrounds for album photos */
+function bgSpace(){
+  ctx.fillStyle='#05060f';ctx.fillRect(0,0,W,H);
+  const neb=ctx.createRadialGradient(700,160,10,700,160,460);neb.addColorStop(0,'rgba(90,60,160,.28)');neb.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=neb;ctx.fillRect(0,0,W,H);
+  drawStars(1,0);
+}
+function drawJupiter(x,y,r){
+  ctx.save();ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.clip();
+  const bands=['#e9d3b0','#c99b6d','#f1e2c6','#b9825a','#e7cfa8','#c99b6d','#f1e2c6'];
+  bands.forEach((c,i)=>{ctx.fillStyle=c;ctx.fillRect(x-r,y-r+i*(2*r/bands.length),2*r,2*r/bands.length+1);});
+  ellipse(x+r*.3,y+r*.25,r*.2,r*.11,'#b5523a');
+  const sh=ctx.createLinearGradient(x-r,y,x+r,y);sh.addColorStop(0,'rgba(0,0,0,0)');sh.addColorStop(1,'rgba(0,0,20,.55)');ctx.fillStyle=sh;ctx.fillRect(x-r,y-r,2*r,2*r);
+  ctx.restore();
+}
+function bodySurface(color,edge,y0,amp,seed){
+  ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(0,H);
+  for(let x=0;x<=W;x+=10)ctx.lineTo(x,y0-amp*Math.sin(x*.006+seed)-amp*.4*Math.sin(x*.021+seed*2));
+  ctx.lineTo(W,H);ctx.fill();
+  ctx.strokeStyle=edge;ctx.lineWidth=3;ctx.beginPath();
+  for(let x=0;x<=W;x+=10){const y=y0-amp*Math.sin(x*.006+seed)-amp*.4*Math.sin(x*.021+seed*2);x?ctx.lineTo(x,y):ctx.moveTo(x,y);}ctx.stroke();
+}
+function sceneWorld(kind){S.bg=kind;S.camX=0;S.moonSegs=null;drawBg();}
+
+const ALBUM=[
+ {id:'eagle',group:'moon',visit:'eagle',name:'Eagle · Apollo 11',
+  when:{en:'Landed July 20, 1969',pt:'Pousou em 20 de julho de 1969'},
+  where:{en:'Sea of Tranquility, Moon',pt:'Mar da Tranquilidade, Lua'},
+  status:{en:'Descent stage still on the Moon',pt:'Estágio de descida ainda na Lua'},
+  text:{en:"Apollo 11's Lunar Module, Eagle, carried Neil Armstrong and Buzz Aldrin to the Moon while Michael Collins orbited above. The two astronauts spent 21 hours and 36 minutes on the surface, walked about 250 meters and collected 21.55 kg of rock and soil. When they left, the descent stage stayed behind as a launch pad, next to a seismometer and a laser reflector.",
+        pt:'O Módulo Lunar da Apollo 11, o Eagle, levou Neil Armstrong e Buzz Aldrin até a Lua, enquanto Michael Collins ficou em órbita. Os dois astronautas passaram 21 horas e 36 minutos na superfície, caminharam cerca de 250 metros e coletaram 21,55 kg de rochas e solo. Quando partiram, o estágio de descida ficou para trás como plataforma de lançamento, ao lado de um sismômetro e de um refletor de laser.'},
+  src:'https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id=1969-059C',
+  draw(){sceneWorld('moon');drawEagle({x:480,y:445,s:2.2,noBlink:1});}},
+ {id:'lrv',group:'moon',visit:'lrv',name:'Lunar Roving Vehicle',
+  when:{en:'First drive: Apollo 15, 1971',pt:'Primeira viagem: Apollo 15, 1971'},
+  where:{en:'Foot of the Apennine Mountains, Moon',pt:'Ao pé dos Montes Apeninos, Lua'},
+  status:{en:'Three LRVs parked on the Moon',pt:'Três LRVs estacionados na Lua'},
+  text:{en:"The Lunar Roving Vehicle was an electric 'moon buggy' driven by astronauts. It was used for the first time on Apollo 15, which landed on July 30, 1971. With the rover, David Scott and James Irwin covered 27.9 km in three moonwalks and brought home 77.31 kg of samples. Three of these rovers are still parked on the Moon.",
+        pt:"O Veículo de Exploração Lunar era um 'buggy lunar' elétrico dirigido pelos astronautas. Ele foi usado pela primeira vez na Apollo 15, que pousou em 30 de julho de 1971. Com o rover, David Scott e James Irwin percorreram 27,9 km em três caminhadas lunares e trouxeram 77,31 kg de amostras. Três desses rovers continuam estacionados na Lua."},
+  src:'https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id=1971-063C',
+  draw(){sceneWorld('moon');drawLRV({x:470,y:445,s:2.3,noBlink:1});}},
+ {id:'alsep',group:'moon',name:'ALSEP · Apollo 12',
+  when:{en:'Switched on November 19, 1969',pt:'Ligado em 19 de novembro de 1969'},
+  where:{en:'Ocean of Storms, Moon',pt:'Oceano das Tempestades, Lua'},
+  status:{en:'Shut down September 30, 1977',pt:'Desligado em 30 de setembro de 1977'},
+  text:{en:"On Apollo 12, Pete Conrad and Alan Bean set up a small science station: the Apollo Lunar Surface Experiments Package. It had a seismometer, a magnetometer, a dust detector and more, powered by a nuclear generator of about 70 watts. It kept sending data for almost eight years after the astronauts left, and it even recorded the first artificial moonquake, when the empty ascent stage was crashed into the Moon.",
+        pt:'Na Apollo 12, Pete Conrad e Alan Bean montaram uma pequena estação científica: o Pacote de Experimentos da Superfície Lunar da Apollo (ALSEP). Ele tinha sismômetro, magnetômetro, detector de poeira e outros instrumentos, alimentados por um gerador nuclear de cerca de 70 watts. Continuou enviando dados por quase oito anos depois da partida dos astronautas e chegou a registrar o primeiro terremoto lunar artificial, quando o módulo de subida vazio foi lançado contra a Lua.'},
+  src:'https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id=1969-099C',
+  draw(){sceneWorld('moon');drawALSEP({x:440,y:445,s:2,noBlink:1});}},
+ {id:'surveyor',group:'moon',name:'Surveyor 3',
+  when:{en:'Landed April 20, 1967',pt:'Pousou em 20 de abril de 1967'},
+  where:{en:'Ocean of Storms, Moon',pt:'Oceano das Tempestades, Lua'},
+  status:{en:'Last contact May 4, 1967',pt:'Último contato em 4 de maio de 1967'},
+  text:{en:"Surveyor 3 bounced twice before settling on the Moon. It was the first Surveyor with a scoop: it dug four trenches and tested the soil, showing the ground could hold an Apollo lunar module. It sent 6,326 TV pictures. Two and a half years later, Apollo 12 landed just 180 meters away, and the astronauts took its camera and scoop back to Earth to study!",
+        pt:'O Surveyor 3 quicou duas vezes antes de parar na Lua. Foi o primeiro Surveyor com uma pá: cavou quatro valas e testou o solo, mostrando que o chão aguentaria um módulo lunar da Apollo. Enviou 6.326 imagens de TV. Dois anos e meio depois, a Apollo 12 pousou a apenas 180 metros dali, e os astronautas levaram a câmera e a pá dele de volta à Terra para estudo!'},
+  src:'https://science.nasa.gov/mission/surveyor-3/',
+  draw(){sceneWorld('moon');drawSurveyor({x:470,y:445,s:1.65,noBlink:1});}},
+ {id:'pathfinder',group:'mars',name:'Mars Pathfinder',
+  when:{en:'Landed July 4, 1997',pt:'Pousou em 4 de julho de 1997'},
+  where:{en:'Ares Vallis, Mars',pt:'Ares Vallis, Marte'},
+  status:{en:'Mission ended September 27, 1997',pt:'Missão encerrada em 27 de setembro de 1997'},
+  text:{en:"Mars Pathfinder was the first spacecraft to land using giant airbags. It hit the ground at about 31 mph, bounced around 15 times, some bounces as high as 50 feet, and stopped about 1 km from where it first touched down. The lander sent back more than 16,500 images and lots of weather data. Rounded pebbles at the site suggested that water once flowed there, when Mars was warmer and wetter.",
+        pt:'O Mars Pathfinder foi a primeira nave a pousar usando airbags gigantes. Ele bateu no chão a cerca de 50 km/h, quicou umas 15 vezes, algumas a até 15 metros de altura, e parou a cerca de 1 km do primeiro toque. O módulo enviou mais de 16.500 imagens e muitos dados sobre o clima. Seixos arredondados no local indicaram que um dia correu água ali, quando Marte era mais quente e úmido.'},
+  src:'https://science.nasa.gov/mission/mars-pathfinder/',
+  draw(){sceneWorld('mars');drawPathfinder({x:480,y:445,s:1.95,noBlink:1});}},
+ {id:'sojourner',group:'mars',visit:'soj',name:'Sojourner',
+  when:{en:'Rolled onto Mars in July 1997',pt:'Desceu em Marte em julho de 1997'},
+  where:{en:'Ares Vallis, Mars',pt:'Ares Vallis, Marte'},
+  status:{en:'Permanently parked',pt:'Estacionado para sempre'},
+  text:{en:"Sojourner was the first rover ever to explore Mars. It traveled inside the Pathfinder lander and rolled down onto the surface around its second Martian day. It was about 30 cm tall and weighed only 10.6 kg. Sojourner sent 550 images, and together with the lander it made more than 15 chemical analyses of rocks and soil. Today it rests, permanently parked, in Ares Vallis.",
+        pt:'O Sojourner foi o primeiro rover a explorar Marte. Ele viajou dentro do módulo Pathfinder e desceu para a superfície por volta do seu segundo dia marciano. Tinha cerca de 30 cm de altura e pesava só 10,6 kg. O Sojourner enviou 550 imagens e, junto com o módulo, fez mais de 15 análises químicas de rochas e solo. Hoje ele descansa, estacionado para sempre, em Ares Vallis.'},
+  src:'https://science.nasa.gov/mission/mars-pathfinder/',
+  draw(){sceneWorld('mars');drawSoj({x:480,y:445,s:4,noBlink:1});}},
+ {id:'mer',group:'mars',visit:'mer',name:'Spirit & Opportunity',
+  when:{en:'Landed January 2004',pt:'Pousaram em janeiro de 2004'},
+  where:{en:'Gusev Crater & Meridiani Planum, Mars',pt:'Cratera Gusev e Meridiani Planum, Marte'},
+  status:{en:'Spirit: 2010 · Opportunity: 2018',pt:'Spirit: 2010 · Opportunity: 2018'},
+  text:{en:"These twin rovers went to Mars to look for signs of past water. Spirit explored Gusev Crater, a possible ancient lake, and drove 7.7 km before its mission ended in 2010. Opportunity drove 45.16 km at Meridiani Planum, a record that lasted until 2026. It went silent on June 10, 2018, during a dust storm that covered the whole planet. Their rocks confirmed that water was long-standing on ancient Mars.",
+        pt:'Esses rovers gêmeos foram a Marte procurar sinais de água no passado. O Spirit explorou a Cratera Gusev, que pode ter sido um lago antigo, e rodou 7,7 km até sua missão terminar em 2010. O Opportunity rodou 45,16 km em Meridiani Planum, um recorde que durou até 2026. Ele silenciou em 10 de junho de 2018, durante uma tempestade de poeira que cobriu o planeta inteiro. As rochas que estudaram confirmaram que houve água por muito tempo na superfície do Marte antigo.'},
+  src:'https://science.nasa.gov/mission/mars-exploration-rovers-spirit-and-opportunity/',
+  draw(){sceneWorld('mars');drawMER({x:300,y:445,s:1.35,accent:'#5fb4ff',noBlink:1});drawMER({x:680,y:445,s:1.35,accent:'#ff9f43',noBlink:1});}},
+ {id:'viking',group:'mars',name:'Viking 1',
+  when:{en:'Landed July 20, 1976',pt:'Pousou em 20 de julho de 1976'},
+  where:{en:'Chryse Planitia, Mars',pt:'Chryse Planitia, Marte'},
+  status:{en:'Worked until November 11, 1982',pt:'Funcionou até 11 de novembro de 1982'},
+  text:{en:"Viking 1 was the first U.S. spacecraft to land successfully on Mars. It sent back the very first photograph from the Martian surface and a color panorama. Its tiny biology lab tested the soil looking for life: some results were puzzling, but the key test for organic compounds was negative. The lander kept working for more than six years.",
+        pt:'O Viking 1 foi a primeira nave dos Estados Unidos a pousar com sucesso em Marte. Ele enviou a primeiríssima fotografia da superfície marciana e um panorama colorido. Seu pequeno laboratório de biologia testou o solo em busca de vida: alguns resultados foram intrigantes, mas o teste principal de compostos orgânicos deu negativo. O módulo continuou funcionando por mais de seis anos.'},
+  src:'https://science.nasa.gov/mission/viking-1/',
+  draw(){sceneWorld('mars');drawViking({x:470,y:445,s:1.8,noBlink:1});}},
+ {id:'insight',group:'mars',name:'InSight',
+  when:{en:'Landed November 26, 2018',pt:'Pousou em 26 de novembro de 2018'},
+  where:{en:'Elysium Planitia, Mars',pt:'Elysium Planitia, Marte'},
+  status:{en:'Mission ended December 15, 2022',pt:'Missão encerrada em 15 de dezembro de 2022'},
+  text:{en:"InSight went to Mars to study what is inside the planet: its crust, mantle and core. Its robotic arm placed a seismometer on the ground to listen for marsquakes, and a heat probe to measure the heat coming from inside. Marsquake data showed lumps of rock from ancient impacts scattered through the mantle. InSight eventually lost power and ended its mission in 2022.",
+        pt:'O InSight foi a Marte para estudar o interior do planeta: a crosta, o manto e o núcleo. Seu braço robótico colocou no chão um sismômetro para escutar os martemotos e uma sonda para medir o calor que vem de dentro. Os dados dos martemotos mostraram pedaços de rocha de impactos antigos espalhados pelo manto. O InSight acabou ficando sem energia e encerrou a missão em 2022.'},
+  src:'https://science.nasa.gov/mission/insight/',
+  draw(){sceneWorld('mars');drawInSight({x:420,y:445,s:1.7,noBlink:1});}},
+ {id:'ingenuity',group:'mars',name:'Ingenuity',
+  when:{en:'First flight April 19, 2021',pt:'Primeiro voo em 19 de abril de 2021'},
+  where:{en:'Jezero Crater, Mars',pt:'Cratera Jezero, Marte'},
+  status:{en:'Mission completed January 25, 2024',pt:'Missão concluída em 25 de janeiro de 2024'},
+  text:{en:"Ingenuity is a tiny helicopter of just 1.8 kg. It made the first powered, controlled flight on another world. It was planned for five test flights in 30 days, but it flew 72 times over nearly three years! In total it flew about 128.8 minutes, traveled 17 km and climbed as high as 24 meters. After its rotors were damaged, it became a still monument on Mars.",
+        pt:'O Ingenuity é um helicóptero minúsculo, de apenas 1,8 kg. Ele fez o primeiro voo motorizado e controlado em outro mundo. Estavam previstos cinco voos de teste em 30 dias, mas ele voou 72 vezes em quase três anos! No total, foram cerca de 128,8 minutos no ar, 17 km percorridos e até 24 metros de altura. Depois que suas hélices foram danificadas, virou um monumento parado em Marte.'},
+  src:'https://science.nasa.gov/mission/mars-2020-perseverance/ingenuity-mars-helicopter/',
+  draw(){sceneWorld('mars');drawIngenuity({x:480,y:445,s:2.6,noBlink:1});}},
+ {id:'dawn',group:'deep',name:'Dawn',
+  when:{en:'Launched September 27, 2007',pt:'Lançada em 27 de setembro de 2007'},
+  where:{en:'Orbiting dwarf planet Ceres',pt:'Em órbita do planeta anão Ceres'},
+  status:{en:'Silent orbit around Ceres',pt:'Órbita silenciosa ao redor de Ceres'},
+  text:{en:"Dawn traveled to the asteroid belt between Mars and Jupiter and visited two very different worlds: the giant asteroid Vesta and the dwarf planet Ceres. NASA calls it its first truly interplanetary spaceship. Dawn studied gullies on Vesta and found signs that fluids once flowed on Ceres. When it ran out of fuel, it stayed in a quiet orbit around Ceres, where it still circles today.",
+        pt:'A Dawn viajou até o cinturão de asteroides, entre Marte e Júpiter, e visitou dois mundos muito diferentes: o asteroide gigante Vesta e o planeta anão Ceres. A NASA a chama de sua primeira nave verdadeiramente interplanetária. A Dawn estudou ravinas em Vesta e encontrou sinais de que fluidos já correram em Ceres. Quando ficou sem combustível, permaneceu numa órbita silenciosa ao redor de Ceres, onde gira até hoje.'},
+  src:'https://science.nasa.gov/mission/dawn/',
+  draw(){bgSpace();ctx.save();ctx.beginPath();ctx.arc(480,1080,700,0,Math.PI*2);ctx.fillStyle='#8b8682';ctx.fill();ctx.clip();
+    [[300,420,40],[620,450,26],[800,520,50],[160,520,30],[480,500,18]].forEach(c=>ellipse(c[0],c[1],c[2],c[2]*.35,'#76716d'));ctx.restore();
+    drawDawn({x:480,y:220,s:1.12,noBlink:1});}},
+ {id:'near',group:'deep',name:'NEAR Shoemaker',
+  when:{en:'Landed on Eros February 12, 2001',pt:'Pousou em Eros em 12 de fevereiro de 2001'},
+  where:{en:'Asteroid 433 Eros',pt:'Asteroide 433 Eros'},
+  status:{en:'Last contact February 28, 2001',pt:'Último contato em 28 de fevereiro de 2001'},
+  text:{en:"On February 14, 2000, NEAR Shoemaker became the first human-made object to orbit an asteroid. A year later, even though it was not built to land, it touched down gently on Eros and kept sending data for about two weeks, until the extreme cold stopped it. Its name honors the geologist Eugene Shoemaker.",
+        pt:'Em 14 de fevereiro de 2000, a NEAR Shoemaker se tornou o primeiro objeto feito por humanos a orbitar um asteroide. Um ano depois, mesmo sem ter sido construída para pousar, ela tocou suavemente o solo de Eros e continuou enviando dados por cerca de duas semanas, até ser vencida pelo frio extremo. Seu nome homenageia o geólogo Eugene Shoemaker.'},
+  src:'https://science.nasa.gov/mission/near-shoemaker/',
+  draw(){bgSpace();bodySurface('#8f7d68','#a8957e',420,30,1.3);
+    [[200,480,34],[640,500,46],[860,460,22]].forEach(c=>ellipse(c[0],c[1],c[2],c[2]*.3,'#7a6956'));
+    drawNEAR({x:500,y:352,s:1.45,rot:.18,noBlink:1});}},
+ {id:'pioneer',group:'deep',name:'Pioneer 10',
+  when:{en:'Launched March 2, 1972',pt:'Lançada em 2 de março de 1972'},
+  where:{en:'Leaving the solar system',pt:'Saindo do Sistema Solar'},
+  status:{en:'Last signal January 23, 2003',pt:'Último sinal em 23 de janeiro de 2003'},
+  text:{en:"Pioneer 10 was the first spacecraft to fly through the asteroid belt and the first to fly past Jupiter. It carries a metal plaque with a message for anyone who might find it. Built for a 21-month mission, it lasted more than 30 years. Its last signal came from 7.6 billion miles away. Now it drifts toward the red star Aldebaran, which it should pass in about two million years.",
+        pt:'A Pioneer 10 foi a primeira nave a atravessar o cinturão de asteroides e a primeira a passar por Júpiter. Ela leva uma placa de metal com uma mensagem para quem a encontrar. Construída para uma missão de 21 meses, durou mais de 30 anos. Seu último sinal veio de cerca de 12 bilhões de quilômetros de distância. Agora ela segue rumo à estrela vermelha Aldebarã, por onde deve passar daqui a uns dois milhões de anos.'},
+  src:'https://science.nasa.gov/mission/pioneer-10/',
+  draw(){bgSpace();drawJupiter(170,150,62);const g=ctx.createRadialGradient(880,90,1,880,90,28);g.addColorStop(0,'#ffd6c2');g.addColorStop(1,'rgba(255,120,80,0)');ctx.fillStyle=g;ctx.fillRect(840,50,80,80);
+    drawPioneer({x:520,y:250,s:1.5,noBlink:1});}},
+ {id:'kepler',group:'deep',name:'Kepler',
+  when:{en:'Launched March 6, 2009',pt:'Lançado em 6 de março de 2009'},
+  where:{en:'Orbiting the Sun',pt:'Em órbita ao redor do Sol'},
+  status:{en:'Retired October 30, 2018',pt:'Aposentado em 30 de outubro de 2018'},
+  text:{en:"Kepler was a space telescope that hunted for planets around other stars. It watched for tiny dips in starlight that happen when a planet passes in front of its star. When a part broke in 2013, engineers used the pressure of sunlight to keep it steady and started a new mission, K2. Kepler found more than 2,600 planets! It was retired when its fuel ran low.",
+        pt:'O Kepler foi um telescópio espacial que caçava planetas ao redor de outras estrelas. Ele observava pequenas quedas no brilho das estrelas, que acontecem quando um planeta passa na frente delas. Quando uma peça quebrou em 2013, os engenheiros usaram a pressão da luz do Sol para mantê-lo estável e começaram uma nova missão, a K2. O Kepler encontrou mais de 2.600 planetas! Foi aposentado quando o combustível ficou baixo.'},
+  src:'https://science.nasa.gov/mission/kepler/',
+  draw(){bgSpace();const g=ctx.createRadialGradient(180,140,2,180,140,70);g.addColorStop(0,'#fff8e0');g.addColorStop(.3,'#ffd36b');g.addColorStop(1,'rgba(255,200,80,0)');ctx.fillStyle=g;ctx.fillRect(100,60,160,160);
+    circle(196,138,6,'#14161c');drawKepler({x:600,y:290,s:1.35,rot:-.55,noBlink:1});}}
+];
+const ALBUM_TX={
+  albumTitle:{en:'The Forgotten Explorers Album',pt:'Álbum dos Exploradores Esquecidos'},
+  albumSub:{en:'Real NASA hardware left on the Moon, on Mars and in deep space. 👆 Tap any photo to see more.',pt:'Equipamentos reais da NASA deixados na Lua, em Marte e no espaço profundo. 👆 Toque em qualquer foto para ver mais.'},
+  introTitle:{en:'Welcome to the Forgotten Explorers Photo Album!',pt:'Bem-vindo ao Álbum de Fotos dos Exploradores Esquecidos!'},
+  introText:{en:'Every photo here shows a real machine that NASA sent to the Moon, to Mars or into deep space, and that stayed there after its mission. Tap any photo to open it and discover its story, with facts straight from NASA.',pt:'Cada foto aqui mostra uma máquina de verdade que a NASA enviou à Lua, a Marte ou ao espaço profundo, e que ficou por lá depois da missão. Toque em qualquer foto para descobrir a história dela, com informações direto da NASA.'},
+  introOk:{en:"OK, let's explore! 🔭",pt:'OK, vamos explorar! 🔭'},
+  more:{en:'ⓘ See more',pt:'ⓘ Ver mais'},
+  gMine:{en:'📷 Your mission photos',pt:'📷 Suas fotos da missão'},
+  gmoon:{en:'🌕 The Moon',pt:'🌕 A Lua'},gmars:{en:'🔴 Mars',pt:'🔴 Marte'},gdeep:{en:'✨ Deep space',pt:'✨ Espaço profundo'},
+  visited:{en:'📷 Your photo',pt:'📷 Sua foto'},
+  source:{en:'Source: NASA',pt:'Fonte: NASA'},
+  close:{en:'✕ Close',pt:'✕ Fechar'},back:{en:'◀ Album',pt:'◀ Álbum'},
+  prev:{en:'◀',pt:'◀'},nxt:{en:'▶',pt:'▶'},
+  openAlbum:{en:'📖 Open the full album',pt:'📖 Abrir o álbum completo'},
+  albumBtn:{en:'📖 Album',pt:'📖 Álbum'}
+};
+Object.assign(TX,ALBUM_TX);
+
+let albumImgs=null,albumOpen=null,albumIdx=0;
+function renderAlbumImgs(){
+  if(albumImgs)return;
+  albumImgs={};
+  const saved=ctx,sv={bg:S.bg,camX:S.camX,moonSegs:S.moonSegs,planet:S.planet};
+  for(const e of ALBUM){
+    const off=document.createElement('canvas');off.width=640;off.height=360;
+    ctx=off.getContext('2d');ctx.setTransform(640/W,0,0,360/H,0,0);
+    try{e.draw();}catch(err){console.error(e.id,err);}
+    albumImgs[e.id]=off.toDataURL('image/jpeg',.85);
+  }
+  ctx=saved;Object.assign(S,sv);
+}
+const VISIT_CAP={lrv:'capLRV',eagle:'capEagle',soj:'capMars',mer:'capMars'};
+function playerPhoto(e){if(!e.visit)return null;const p=photos.find(p=>p.cap===VISIT_CAP[e.visit]);return p?p.img.src:null;}
+function buildAlbum(){
+  const el=$('#album');
+  let h=`<div class="ahead"><div><h2>${t('albumTitle')}</h2><p>${t('albumSub')}</p></div>
+    <div class="abtns"><button class="btn ghost" id="aLang">${t('langBtn')}</button><button class="btn" id="aClose">${t('close')}</button></div></div>`;
+  for(const g of ['moon','mars','deep']){
+    h+=`<h3>${t('g'+g)}</h3><div class="agrid">`;
+    ALBUM.forEach((e,i)=>{if(e.group!==g)return;
+      const ph=playerPhoto(e);h+=`<button class="pol" data-i="${i}" style="--r:${[-2.5,1.8,-1.2,2.6,-.6][i%5]}deg">${ph?`<em>${t('visited')}</em>`:''}<img src="${ph||albumImgs[e.id]}" alt="${e.name}"><span>${e.name}<small>${t('more')}</small></span></button>`;});
+    h+='</div>';
+  }
+  el.innerHTML=h;
+  el.querySelectorAll('.pol[data-i]').forEach(b=>b.onclick=()=>{sfx('click');showAlbumItem(+b.dataset.i);});
+  $('#aClose').onclick=closeAlbum;
+  $('#aLang').onclick=()=>{lang=lang==='en'?'pt':'en';refreshTexts();buildAlbum();sfx('click');};
+}
+function showAlbumItem(i){
+  albumIdx=(i+ALBUM.length)%ALBUM.length;const e=ALBUM[albumIdx],ph=playerPhoto(e);
+  const d=$('#albumDetail');
+  d.innerHTML=`<div class="dcard">
+    <div class="dtop"><button class="btn ghost" id="dBack">${t('back')}</button>
+      <div class="nav"><button class="btn ghost" id="dPrev">◀</button><span>${albumIdx+1} / ${ALBUM.length}</span><button class="btn ghost" id="dNext">▶</button></div></div>
+    <div class="pol big"><img src="${ph||albumImgs[e.id]}" alt="${e.name}"><span>${e.name}</span></div>
+    <h2>${e.name}${ph?` <em>${t('visited')}</em>`:''}</h2>
+    <div class="chips"><b>🗓️ ${e.when[lang]}</b><b>📍 ${e.where[lang]}</b><b>💤 ${e.status[lang]}</b></div>
+    <p>${e.text[lang]}</p>
+    <a href="${e.src}" target="_blank" rel="noopener">🔗 ${t('source')} · ${e.src.replace('https://','').split('/')[0]}</a>
+  </div>`;
+  d.style.display='flex';d.scrollTop=0;
+  $('#dBack').onclick=()=>{sfx('click');d.style.display='none';};
+  $('#dPrev').onclick=()=>{sfx('click');showAlbumItem(albumIdx-1);};
+  $('#dNext').onclick=()=>{sfx('click');showAlbumItem(albumIdx+1);};
+}
+function openAlbum(){
+  return new Promise(res=>{
+    renderAlbumImgs();buildAlbum();albumOpen=res;
+    $('#album').style.display='block';$('#album').scrollTop=0;$('#albumDetail').style.display='none';
+    const ai=$('#albumIntro');
+    ai.innerHTML=`<div class="icard"><div class="ipol"><img src="${albumImgs.pathfinder}" alt=""><img src="${albumImgs.eagle}" alt=""><img src="${albumImgs.pioneer}" alt=""></div>
+      <h2>${t('introTitle')}</h2><p>${t('introText')}</p><button class="btn big" id="introOk">${t('introOk')}</button></div>`;
+    ai.style.display='flex';
+    $('#introOk').onclick=()=>{sfx('click');ai.style.display='none';};
+  });
+}
+function closeAlbum(){
+  sfx('click');$('#album').style.display='none';$('#albumDetail').style.display='none';$('#albumIntro').style.display='none';
+  if(albumOpen){const r=albumOpen;albumOpen=null;r();}
+}
+addEventListener('keydown',e=>{
+  if($('#album').style.display!=='block')return;
+  if($('#albumIntro').style.display==='flex'){if(e.key==='Escape'||e.key==='Enter')$('#albumIntro').style.display='none';return;}
+  if(e.key==='Escape'){if($('#albumDetail').style.display==='flex')$('#albumDetail').style.display='none';else closeAlbum();}
+  if($('#albumDetail').style.display==='flex'){if(e.key==='ArrowRight')showAlbumItem(albumIdx+1);if(e.key==='ArrowLeft')showAlbumItem(albumIdx-1);}
+});
+
+/* =========================================================
+   APOLLO 11 "LEARN MORE"
+   ========================================================= */
+function drawCSM(x,y,s,rot){
+  ctx.save();ctx.translate(x,y);ctx.rotate(rot);ctx.scale(s,s);
+  ctx.fillStyle='#6b6f7a';ctx.beginPath();ctx.moveTo(-58,-8);ctx.lineTo(-74,-15);ctx.lineTo(-74,15);ctx.lineTo(-58,8);ctx.fill();
+  const g=ctx.createLinearGradient(0,-18,0,18);g.addColorStop(0,'#f4f5f8');g.addColorStop(.5,'#d3d6dd');g.addColorStop(1,'#9aa0aa');
+  rr(-58,-18,60,36,3,g);ctx.strokeStyle='#8a8f99';ctx.lineWidth=1;for(let i=-48;i<0;i+=12){ctx.beginPath();ctx.moveTo(i,-18);ctx.lineTo(i,18);ctx.stroke();}
+  ctx.fillStyle='#c9ccd3';ctx.beginPath();ctx.moveTo(2,-18);ctx.lineTo(36,-5);ctx.lineTo(36,5);ctx.lineTo(2,18);ctx.closePath();ctx.fill();
+  rr(34,-4,6,8,2,'#8a8f99');circle(16,-3,3,'#1d3b6e');
+  line([[-30,-18],[-30,-34]],'#bbb',2);circle(-30,-36,4,'#eee');
+  ctx.restore();
+}
+function renderApolloImg(){
+  const off=document.createElement('canvas');off.width=960;off.height=540;
+  const saved=ctx;ctx=off.getContext('2d');
+  try{
+    bgSpace();drawPlanet('earth',840,90,34);
+    ctx.save();ctx.beginPath();ctx.arc(480,1180,820,0,Math.PI*2);ctx.fillStyle='#9a9aa2';ctx.fill();ctx.clip();
+    [[300,420,40],[640,400,30],[820,470,55],[140,500,30],[520,500,22]].forEach(c=>ellipse(c[0],c[1],c[2],c[2]*.3,'#82828a'));ctx.restore();
+    ctx.setLineDash([10,10]);ctx.strokeStyle='rgba(111,211,255,.8)';ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(480,560,620,420,0,Math.PI*1.05,Math.PI*1.95);ctx.stroke();ctx.setLineDash([]);
+    drawCSM(700,185,1.6,.32);
+    drawEagle({x:330,y:396,s:.75,noBlink:1});
+    drawAstro({x:236,y:400,s:.7,facing:1,noBlink:1});drawAstro({x:420,y:404,s:.7,facing:-1,noBlink:1,wave:false});
+    ctx.font='bold 22px sans-serif';ctx.textAlign='center';
+    const lab=(txt,x,y)=>{const w=ctx.measureText(txt).width;rr(x-w/2-12,y-24,w+24,34,10,'rgba(10,12,35,.85)','#6fd3ff',2);ctx.fillStyle='#fff';ctx.fillText(txt,x,y);};
+    lab(t('apOrbit'),660,92);lab(t('apSurface'),330,488);
+  }catch(e){console.error(e);}
+  ctx=saved;
+  return off.toDataURL('image/jpeg',.88);
+}
+function showApollo(){
+  const m=$('#apollo');
+  m.innerHTML=`<div class="acard"><img src="${renderApolloImg()}" alt="">
+    <h2>📖 ${t('apTitle')}</h2><p>${t('apText')}</p>
+    <div class="afoot"><a href="https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id=1969-059C" target="_blank" rel="noopener">🔗 ${t('apSrc')}</a>
+    <button class="btn" id="apOk">${t('apOk')}</button></div></div>`;
+  m.style.display='flex';m.scrollTop=0;
+  $('#apOk').onclick=e=>{e.stopPropagation();sfx('click');m.style.display='none';};
+}
+addEventListener('keydown',e=>{if($('#apollo').style.display==='flex'&&(e.key==='Escape'||e.key==='Enter')){e.stopImmediatePropagation();$('#apollo').style.display='none';}},true);
+
+/* =========================================================
+   TITLE BUTTONS
+   ========================================================= */
+document.querySelectorAll('.sndBtn').forEach(b=>b.onclick=e=>{e.stopPropagation();soundOn=!soundOn;initAudio();if(master)master.gain.value=soundOn?.55:0;refreshTexts();sfx('click');});
+document.querySelectorAll('.langBtn').forEach(b=>b.onclick=e=>{e.stopPropagation();lang=lang==='en'?'pt':'en';refreshTexts();sfx('click');});
+$('#startBtn').onclick=async()=>{
+  initAudio();sfx('click');
+  await tween(S,{fade:1},.5);
+  $('#title').style.display='none';$('#toggles').style.display='flex';
+  run();
+};
+$('#albumBtn').onclick=e=>{e.stopPropagation();sfx('click');openAlbum();};
+refreshTexts();
+</script>
+</body>
+</html>
